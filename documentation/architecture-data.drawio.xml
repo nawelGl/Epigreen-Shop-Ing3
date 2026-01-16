@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36" version="29.3.2">
+  <diagram id="ASiHpUjaiif3vhqo3DVh" name="archi-data">
+    <mxGraphModel dx="2066" dy="790" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-1" parent="1" style="swimlane;childLayout=stackLayout;horizontal=1;rounded=1;fillColor=#1f2933;fontColor=#ffffff;strokeColor=#111827;" value="Sources &amp; Ingestion" vertex="1">
+          <mxGeometry height="228" width="510" x="260" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-2" parent="1" style="swimlane;childLayout=absolute;horizontal=1;rounded=1;fillColor=#111827;fontColor=#ffffff;strokeColor=#111827;" value="Datalake (HDFS)" vertex="1">
+          <mxGeometry height="220" width="460" x="950" y="333" as="geometry" />
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-3" parent="xNPR4tR46UwlX9NJsG9x-2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6ff;strokeColor=#1d4ed8;fontColor=#111827;" value="Zone RAW&#xa;Données brutes collectées" vertex="1">
+          <mxGeometry height="70" width="120" x="25" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-4" parent="xNPR4tR46UwlX9NJsG9x-2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6ff;strokeColor=#1d4ed8;fontColor=#111827;" value="Zone CURATED&#xa;Données nettoyées / standardisées" vertex="1">
+          <mxGeometry height="70" width="120" x="320" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-5" edge="1" parent="xNPR4tR46UwlX9NJsG9x-2" source="xNPR4tR46UwlX9NJsG9x-3" style="endArrow=block;rounded=0;strokeColor=light-dark(#E5E7EB,#E5E7EB);fontColor=light-dark(#E5E7EB,#E5E7EB);" target="xNPR4tR46UwlX9NJsG9x-4" value="&lt;&lt;Transformation Spark&gt;&gt;&#xa;Nettoyage / enrichissement">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-6" parent="1" style="swimlane;childLayout=absolute;horizontal=1;rounded=1;fillColor=#111827;fontColor=#ffffff;strokeColor=#111827;" value="Data Warehouse (PostgreSQL)" vertex="1">
+          <mxGeometry height="220" width="490" x="1520" y="338" as="geometry" />
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-7" parent="xNPR4tR46UwlX9NJsG9x-6" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe4b5;strokeColor=#b45309;fontColor=#111827;shape=mxgraph.flowchart.database;" value="Staging&#xa;Tables structurées" vertex="1">
+          <mxGeometry height="80" width="110" x="100" y="65" as="geometry" />
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-8" parent="xNPR4tR46UwlX9NJsG9x-6" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe4b5;strokeColor=#b45309;fontColor=#111827;shape=mxgraph.flowchart.database;" value="Datamart&#xa;Modèle orienté métier" vertex="1">
+          <mxGeometry height="80" width="110" x="340" y="65" as="geometry" />
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-9" edge="1" parent="xNPR4tR46UwlX9NJsG9x-6" source="xNPR4tR46UwlX9NJsG9x-7" style="endArrow=block;rounded=0;strokeColor=#e5e7eb;fontColor=light-dark(#E5E7EB, #ffffff);" target="xNPR4tR46UwlX9NJsG9x-8" value="&lt;&lt;SQL métier&gt;&gt;&#xa;Vue / CTAS">
+          <mxGeometry relative="1" x="-0.0031" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-10" parent="1" style="swimlane;childLayout=absolute;horizontal=1;rounded=1;fillColor=#111827;fontColor=#ffffff;strokeColor=#111827;" value="Consommation / BI" vertex="1">
+          <mxGeometry height="180" width="220" x="2130" y="338" as="geometry">
+            <mxRectangle height="30" width="140" x="2130" y="338" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-11" edge="1" parent="1" source="xNPR4tR46UwlX9NJsG9x-15" style="endArrow=block;rounded=0;fontColor=light-dark(#e5e7eb, #ffffff);" target="xNPR4tR46UwlX9NJsG9x-16" value="Collecte">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-12" edge="1" parent="1" source="xNPR4tR46UwlX9NJsG9x-16" style="endArrow=block;rounded=0;strokeColor=light-dark(#666666, #ffffff);fontColor=light-dark(#E5E7EB,#D0DCED);fontStyle=1;fillColor=#f5f5f5;" target="xNPR4tR46UwlX9NJsG9x-3" value="&lt;&lt;Ingestion&gt;&gt;&#xa;Écriture dans RAW (HDFS)">
+          <mxGeometry relative="1" x="0.0026" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-13" edge="1" parent="1" source="xNPR4tR46UwlX9NJsG9x-8" style="endArrow=block;rounded=0;fontColor=light-dark(#e5e7eb, #ffffff);fillColor=#f5f5f5;strokeColor=light-dark(#666666, #ffffff);" target="xNPR4tR46UwlX9NJsG9x-14" value="Lecture BI&#xa;JDBC / ODBC">
+          <mxGeometry relative="1" x="-0.0046" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-14" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#faccd7;strokeColor=#be123c;fontColor=#111827;" value="Reporting / BI&lt;br&gt;MetaBase Desktop" vertex="1">
+          <mxGeometry height="70" width="160" x="2160" y="393" as="geometry" />
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-15" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f6d5b9;strokeColor=#d79b00;fontColor=#111827;" value="Sources&#xa;(APIs, Fichiers, Capteurs, Open Data)" vertex="1">
+          <mxGeometry height="130" width="160" x="290" y="378" as="geometry" />
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-16" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f6d5b9;strokeColor=#d79b00;fontColor=#111827;" value="Ingestion&#xa;Python + Airflow (ETL)" vertex="1">
+          <mxGeometry height="140" width="160" x="590" y="373" as="geometry" />
+        </mxCell>
+        <mxCell id="xNPR4tR46UwlX9NJsG9x-17" edge="1" parent="1" source="xNPR4tR46UwlX9NJsG9x-4" style="endArrow=block;rounded=0;strokeColor=light-dark(#e5e7eb, #ffffff);fontColor=light-dark(#E5E7EB, #ffffff);" target="xNPR4tR46UwlX9NJsG9x-7" value="&lt;&lt;Load Spark JDBC&gt;&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
