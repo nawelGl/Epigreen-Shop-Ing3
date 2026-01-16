@@ -1,0 +1,49 @@
+<configuration>
+
+  <!-- Chaque bloc est répliqué sur deux DataNodes. -->
+  <property>
+    <name>dfs.replication</name>
+    <value>2</value>
+  </property>
+
+  <!-- NameNode : stockage des métadonnées (UNIQUEMENT sur vm-datalake) -->
+  <property>
+    <name>dfs.namenode.name.dir</name>
+    <value>file:///home/hadoop/hadoopdata/namenode</value>
+  </property>
+
+  <!-- DataNode : répertoires de données (peut rester ici, mais requis surtout sur les datanodes) -->
+  <property>
+    <name>dfs.datanode.data.dir</name>
+    <value>file:///home/hadoop/hadoopdata/datanode</value>
+  </property>
+
+  <!-- Adresse RPC du NameNode (celle que les DataNodes utilisent) -->
+  <property>
+    <name>dfs.namenode.rpc-address</name>
+    <value>vm-datalake:9000</value>
+  </property>
+
+  <!-- UI NameNode -->
+  <property>
+    <name>dfs.namenode.http-address</name>
+    <value>vm-datalake:9871</value>
+  </property>
+
+  <!-- IMPORTANT : bind sur l'interface réseau (pas 127.0.1.1) -->
+  <property>
+    <name>dfs.namenode.rpc-bind-host</name>
+    <value>0.0.0.0</value>
+  </property>
+
+  <property>
+    <name>dfs.namenode.servicerpc-bind-host</name>
+    <value>0.0.0.0</value>
+  </property>
+
+  <property>
+    <name>dfs.namenode.http-bind-host</name>
+    <value>0.0.0.0</value>
+  </property>
+
+</configuration>

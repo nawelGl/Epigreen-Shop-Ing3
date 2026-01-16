@@ -1,0 +1,17 @@
+
+
+<!-- Y acceder depuis la vm : cat $HADOOP_HOME/etc/hadoop/core-site.xml -->
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+
+<!--  Ici je définis le NameNode principal, c’est le point d’entrée HDFS. -->
+
+<configuration>
+  <property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://vm-datalake:9000</value>
+  </property>
+</configuration>
