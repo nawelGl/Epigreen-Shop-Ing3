@@ -1,0 +1,4 @@
+172.31.253.136  vm-spark-master
+172.31.253.248  vm-spark-worker1
+172.31.252.235  vm-spark-worker2
+172.31.253.167  vm-spark
