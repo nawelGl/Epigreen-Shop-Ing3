@@ -39,7 +39,6 @@ classDiagram
 
     %% --- MICROSERVICE: PRODUCT ---
     namespace ms_product {
-        %% J'ai remonté Warehouse pour qu'il ne gêne plus le trait
         class Warehouse {
             +Integer id
             +String name
@@ -48,20 +47,25 @@ classDiagram
         }
 
         class ProductStock {
-            +Integer id
-            +Integer product_id
+            +Integer id_stock
+            +Integer id_catalog_product
             +String size_label
-            +Integer quantity
-            +Integer warehouse_id_ref
+            +Integer quantity_available
+            +Integer warehouse_id
         }
 
         class CatalogProduct {
-            +Integer id
-            +String reference_sku
+            +Integer id_catalog_product
+            +String reference
             +String name
-            +Decimal current_price
-            +String eco_material_type
-            +Float weight_kg
+            +String brand
+            +String color
+            +String season
+            +String gender_segment
+            +String main_category
+            +String sub_category
+            +String article_type
+            +Decimal price
         }
     }
 
