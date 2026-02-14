@@ -27,11 +27,9 @@ EPISE-Creteil
 ```
 
 
-## Emplacement des ressources
 #### Configuration :
 /etc/haproxy/haproxy.cfg
 
-#### VM connectées au proxy :
 ### Architecture Réseau
 
 Le reverse proxy (HAProxy) redirige les flux vers les services internes suivants :
