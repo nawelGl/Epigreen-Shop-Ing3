@@ -2,6 +2,8 @@ package ms_membership.application.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import ms_membership.application.dto.CustomerRequestDTO;
 import ms_membership.application.dto.CustomerResponseDTO;
 import ms_membership.application.mapper.CustomerMapper;
@@ -9,8 +11,6 @@ import ms_membership.domain.entity.Customer;
 import ms_membership.domain.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,13 +54,14 @@ public class CustomerService {
     }
 
     /**
-     * Récupère tous les clients.
+     * Récupère les clients avec pagination.
+     * 
+     * @param pageable contient le numéro de page et la taille (ex: page=0, size=10)
      */
     @Transactional(readOnly = true)
-    public List<CustomerResponseDTO> getAllCustomers() {
-        return repository.findAll().stream()
-                .map(mapper::toDto)
-                .collect(Collectors.toList());
+    public Page<CustomerResponseDTO> getAllCustomers(Pageable pageable) {
+        return repository.findAll(pageable)
+                .map(mapper::toDto);
     }
 
     /**

@@ -5,10 +5,12 @@ import lombok.RequiredArgsConstructor;
 import ms_membership.application.dto.CustomerRequestDTO;
 import ms_membership.application.dto.CustomerResponseDTO;
 import ms_membership.application.service.CustomerService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/customers")
@@ -34,12 +36,15 @@ public class CustomerController {
         return ResponseEntity.ok(service.getCustomerById(id));
     }
 
-    /**
-     * GET /api/customers : Récupérer la liste de tous les clients
+/**
+     * GET /api/customers?page=0&size=10
+     * Récupère une page de clients.
      */
     @GetMapping
-    public ResponseEntity<List<CustomerResponseDTO>> getAllCustomers() {
-        return ResponseEntity.ok(service.getAllCustomers());
+    public ResponseEntity<Page<CustomerResponseDTO>> getAllCustomers(
+            @PageableDefault(size = 10, page = 0) Pageable pageable
+    ) {
+        return ResponseEntity.ok(service.getAllCustomers(pageable));
     }
 
     /**
