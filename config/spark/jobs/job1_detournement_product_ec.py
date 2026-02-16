@@ -23,7 +23,7 @@ def main():
     parser.add_argument("--output", required=True, help="HDFS output parquet path (CURATED)")
     parser.add_argument("--n-product-ref", type=int, required=True, help="ex: 42019")
     parser.add_argument("--n-warehouse", type=int, required=True, help="ex: 200")
-    parser.add_argument("--presence-pct", type=int, default=30, help="0-100, % presence produit/entrepot")
+    parser.add_argument("--presence-pct", type=int, default=50, help="0-100, % presence produit/entrepot")
     parser.add_argument("--sample-n", type=int, default=0, help="Optionnel: limite le volume (demo). 0 = full")
     args = parser.parse_args()
 
