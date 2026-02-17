@@ -1,0 +1,50 @@
+# --- Java & Maven ---
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.mvn/
+mvnw
+mvnw.cmd
+
+# --- IDE (IntelliJ / Eclipse / VS Code) ---
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+bin/
+
+# --- Système (Mac / Windows) ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Docker ---
+docker-data/
+postgres-data/
+
+# --- Secrets & Environnement ---
+.env
+*.env
+application-local.properties
+application-local.yaml
+
+# --- Front-end ---
+node_modules/
+dist/
+build/
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Tests API (On garde les collections Bruno, mais pas les secrets) ---
+# Si tu utilises le format .bru, c'est bon.
+# Si tu as des fichiers de variables d'environnement Bruno avec des secrets :
+.bruno/
+*.env.bru
