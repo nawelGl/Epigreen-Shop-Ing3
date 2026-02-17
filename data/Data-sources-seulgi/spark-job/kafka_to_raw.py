@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, to_date, current_timestamp, lit
-
+import time
 # adresse de kafka
 BOOTSTRAP = "172.31.249.79:9092"
 # topic des évènements des utilisateurs
 TOPICS = "user-event-click,user-event-cart,user-event-search"
 
-RAW_BASE_PATH = "/datalake/raw/user_events"
+RAW_BASE_PATH = "/datalake/seulgi/raw/user_events"
 
 def main():
-
+    start = time.time()
     spark = (
         SparkSession.builder
         .appName("kafka_to_raw_batch")
@@ -27,6 +27,8 @@ def main():
         .option("endingOffsets", "latest")       # jusqu'à maintenant
         .load()
     )
+    print("Kafka rows:", df.count())
+    df.groupBy("topic").count().show(truncate=False)
 
     raw_df = (
         df.select(
@@ -49,6 +51,9 @@ def main():
         .parquet(RAW_BASE_PATH)
 
     spark.stop()
-
+    end = time.time()
+    elapsed=end-start
+    print(f"opéation est terminée : {elapsed}sec")
 if __name__ == "__main__":
     main()
+
