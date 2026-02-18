@@ -96,4 +96,21 @@ public class CustomerService {
         }
         repository.deleteById(id);
     }
+
+    /**
+     * Authentification (Login)
+     */
+    @Transactional(readOnly = true)
+    public CustomerResponseDTO login(String email, String password) {
+        // 1. on trouve un customer par email
+        Customer customer = repository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Email incorrect."));
+
+        // 2. vérifier le mot de passe
+        if (!customer.getPasswordHash().equals(password)) {
+            throw new IllegalArgumentException("Mot de passe incorrect.");
+        }
+
+        return mapper.toDto(customer);
+    }
 }
