@@ -7,54 +7,71 @@ import { CONFIG } from "../api/config";
 export default function Home() {
     const [products, setProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
+    
+    // états pour les onglets et la pagination
+    const [activeTab, setActiveTab] = useState("Women");
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 12; // Nombre de produits affichés par page
+
     const userName = localStorage.getItem('epigreen_user_name');
 
     // Récupération des produits au chargement
     useEffect(() => {
-        console.log(` Tentative d'appel vers : ${CONFIG.API.PRODUCT}/products`);
-        
-        axios.get(`${CONFIG.API.PRODUCT}/products`)
+        // On force le backend à renvoyer jusqu'à 200 produits d'un coup grâce à ?size=200
+        axios.get(`${CONFIG.API.PRODUCT}?size=200`)
             .then(res => {
-                console.log(" Données reçues du backend :", res.data);
-                
-                // Sécurité : Vérifier si c'est bien un tableau (Array)
                 if (Array.isArray(res.data)) {
                     setProducts(res.data);
                 } 
-                // Si Spring Boot renvoie une pagination (Page<Product>)
                 else if (res.data && Array.isArray(res.data.content)) {
                     setProducts(res.data.content);
                 } 
                 else {
-                    console.error(" Format de données inattendu", res.data);
                     setProducts([]);
                 }
             })
             .catch(err => {
                 console.error(" Erreur de chargement :", err);
-                setProducts([]); // Éviter le crash
+                setProducts([]); 
             });
     }, []);
 
-    // Sécurité : S'assurer que products est toujours un tableau
     const safeProducts = Array.isArray(products) ? products : [];
 
-    // Filtre de recherche protégé contre les valeurs nulles
+    // Filtre de recherche
     const filteredProducts = safeProducts.filter(p => {
         if (!p) return false;
         const refMatch = p.reference ? p.reference.toLowerCase().includes(searchTerm.toLowerCase()) : false;
-        const catMatch = p.category ? p.category.toLowerCase().includes(searchTerm.toLowerCase()) : false;
-        return refMatch || catMatch;
+        const nameMatch = p.name ? p.name.toLowerCase().includes(searchTerm.toLowerCase()) : false;
+        return refMatch || nameMatch;
     });
 
-    const sections = ["Femme", "Homme", "Enfant"];
+    // Filtre des produits pour l'onglet actuellement sélectionné
+    const activeTabProducts = filteredProducts.filter(p => 
+        p.genderSegment && p.genderSegment.trim().toLowerCase() === activeTab.toLowerCase()
+    );
+
+    // Calculs pour la pagination 
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentProducts = activeTabProducts.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(activeTabProducts.length / itemsPerPage);
+
+
+    // genderSection d'après la bd product
+    const sections = ["Women", "Men", "Unisex", "Girls", "Boys"];
+
+    // Fonction pour changer d'onglet (et remettre la page à 1)
+    const handleTabChange = (section) => {
+        setActiveTab(section);
+        setCurrentPage(1);
+    };
 
     return (
         <div>
             <Header userName={userName} onSearch={setSearchTerm} />
-
+            {/* TODO: implémenter ms-recommandation */}
             <div className="container">
-                {/* 1. Ligne de Recommandations */}
                 <h2 style={{ color: 'var(--primary)', marginTop: '0' }}>✨ Recommandations pour vous</h2>
                 <div className="row" style={{ gap: '20px', flexWrap: 'nowrap', overflowX: 'auto', paddingBottom: '10px' }}>
                     {[1, 2, 3, 4].map((item) => (
@@ -68,45 +85,134 @@ export default function Home() {
 
                 <hr style={{ border: '0', borderTop: '1px solid var(--border)', margin: '30px 0' }} />
 
-                {/* 2. Affichage par Catégories / Sections */}
-                {sections.map(section => {
-                    const sectionProducts = filteredProducts.filter(p => p.section === section);
-                    if (sectionProducts.length === 0) return null;
+                {/* Barre d'onglet */}
+                <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', borderBottom: '2px solid #eee', overflowX: 'auto' }}>
 
-                    return (
-                        <div key={section} style={{ marginBottom: '50px' }}>
-                            <h2 style={{ borderBottom: '2px solid var(--primary)', display: 'inline-block', paddingBottom: '5px' }}>
-                                Section {section}
-                            </h2>
+                    {/* Mapping selon section*/}
+                    {sections.map(section => (
+                        <button
+                            key={section}
+                            onClick={() => handleTabChange(section)}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                padding: '10px 5px',
+                                fontSize: '1.1rem',
+                                cursor: 'pointer',
+                                fontWeight: activeTab === section ? 'bold' : 'normal',
+                                color: activeTab === section ? 'var(--primary)' : '#777',
+                                borderBottom: activeTab === section ? '3px solid var(--primary)' : '3px solid transparent',
+                                marginBottom: '-2px', 
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            {section}
+                        </button>
+                    ))}
+                </div>
+
+               {/* Afficage des produits */}
+               <div style={{ 
+                    display: "grid", 
+                    gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", 
+                    gap: "25px",
+                    marginTop: "20px"
+                }}>
+                    {currentProducts.map((p) => (
+                        <Link key={p.id} to={`/products/${p.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block', height: '100%' }}>
+                            <div className="card" style={{ 
+                                display: 'flex', 
+                                flexDirection: 'column', 
+                                height: '100%', /* toutes les cartes à la même taille */
+                                padding: '15px',
+                                boxSizing: 'border-box',
+                                transition: 'transform 0.2s, box-shadow 0.2s'
+                            }} 
+                            onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)'; }} 
+                            onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                                
+                                {/* Placeholder de l'image */}
+                                <div style={{ backgroundColor: "#f0f0f0", height: "200px", borderRadius: "8px", marginBottom: "15px", width: "100%", flexShrink: 0 }} />
+                                
+                                {/* Conteneur du texte => flexible */}
+                                <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                                    
+                                    <p style={{ margin: '0 0 5px 0', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                        {p.mainCategory}
+                                    </p>
+                                    
+                                
+                                    <h3 style={{ 
+                                        margin: '0 0 10px 0', 
+                                        fontSize: '1.1rem', 
+                                        display: '-webkit-box', 
+                                        WebkitLineClamp: 2, 
+                                        WebkitBoxOrient: 'vertical', 
+                                        overflow: 'hidden',
+                                        lineHeight: '1.3'
+                                    }}>
+                                        {p.name}
+                                    </h3>
+                                    
+                                    <p className="small" style={{ color: '#666', marginBottom: '10px' }}>{p.reference}</p>
+                                    
+                                    {/* Le bas de la carte avec le prix et la taille */}
+                                        <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                                            <strong style={{ color: 'var(--primary)', fontSize: '1.2rem' }}>{p.price} €</strong>
                             
-                            <div style={{
-                                display: "grid",
-                                gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-                                gap: "20px",
-                                marginTop: "15px"
-                            }}>
-                                {sectionProducts.map((p) => (
-                                    <Link key={p.idProduct} to={`/products/${p.idProduct}`}>
-                                        <div className="card">
-                                            <div style={{ backgroundColor: "#eee", height: "160px", borderRadius: "8px" }} />
-                                            <div style={{ padding: '8px 0' }}>
-                                                <h3 style={{ margin: '0', fontSize: '1.1rem' }}>{p.category}</h3>
-                                                <p className="small">{p.reference}</p>
-                                                <div className="row" style={{ justifyContent: 'space-between', marginTop: '10px' }}>
-                                                    <strong style={{ color: 'var(--primary)' }}>{p.price} €</strong>
-                                                    <span className="badge">{p.size}</span>
-                                                </div>
-                                            </div>
+                                            <span className="badge" style={{ 
+                                                backgroundColor: '#f0f0f0', 
+                                                color: '#333', 
+                                                padding: '4px 8px', 
+                                                borderRadius: '4px', 
+                                                fontSize: '0.8rem',
+                                                maxWidth: '120px', 
+                                                whiteSpace: 'nowrap', 
+                                                overflow: 'hidden', // on cache si la taille de texte dépasse  => "...."
+                                                textOverflow: 'ellipsis' 
+                                            }}>
+                                                {p.sizes}
+                                            </span>
                                         </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                    );
-                })}
 
-                {filteredProducts.length === 0 && (
-                    <p style={{ textAlign: 'center', marginTop: '50px' }}>Aucun produit trouvé.</p>
+                                </div>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+
+                {/* Controle des paginations => boutton Precedent et Suivant (blocages premier/dernier des pages) */}
+                {totalPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginTop: '40px' }}>
+                        <button 
+                            onClick={() => setCurrentPage(prev => prev - 1)} 
+                            disabled={currentPage === 1}
+                            style={{ padding: '8px 16px', borderRadius: '4px', color: currentPage === 1 ? '#aaa' : '#333',border: '1px solid #ccc', background: currentPage === 1 ? '#f9f9f9' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                        >
+                            Précédent
+                        </button>
+                        
+                        <span style={{ fontSize: '1rem', color: '#555' }}>
+                            Page <strong>{currentPage}</strong> sur {totalPages}
+                        </span>
+                        
+                        <button 
+                            onClick={() => setCurrentPage(prev => prev + 1)} 
+                            disabled={currentPage === totalPages}
+                            style={{ padding: '8px 16px', borderRadius: '4px',color: currentPage === totalPages ? '#aaa' : '#333', border: '1px solid #ccc', background: currentPage === totalPages ? '#f9f9f9' : 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                        >
+                            Suivant
+                        </button>
+                    </div>
+                )}
+
+                {/* Cas d'absence des produits */}
+
+                {activeTabProducts.length === 0 && (
+                    <div style={{ textAlign: 'center', marginTop: '50px', padding: '40px', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
+                        <h3 style={{ color: '#777' }}>Aucun produit trouvé.</h3>
+                        <p style={{ color: '#999' }}>Pas d'articles dans la section "{activeTab}" pour le moment.</p>
+                    </div>
                 )}
             </div>
         </div>
