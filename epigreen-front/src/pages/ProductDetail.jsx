@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Header from '../components/Header';
 import { CONFIG } from '../api/config';
+import { trackEvent } from '../api/tracker';
 
 export default function ProductDetail() {
     const { id } = useParams();
@@ -16,10 +17,17 @@ export default function ProductDetail() {
     const userName = localStorage.getItem('epigreen_user_name');
     const userId = localStorage.getItem('epigreen_user_id');
 
+
+
     // 1. Récupération des détails du produit
     useEffect(() => {
         axios.get(`${CONFIG.API.PRODUCT}/${id}`)
-            .then(res => setProduct(res.data))
+            .then(res => {
+                setProduct(res.data);
+                // Tracer le click de product
+                trackEvent("CLICK", { productId: parseInt(id) });
+                console.log("Click event est tracé, product :", id);
+            })
             .catch(err => console.error("Erreur lors du chargement du produit:", err));
     }, [id]);
 
@@ -39,7 +47,9 @@ export default function ProductDetail() {
                 console.log("Panier mis à jour :", res.data);
                 setIsAdding(false);
                 setSuccessMessage("Produit ajouté au panier avec succès ! ");
-                
+
+                //Tracer l'ajout de cart
+                trackEvent("CART", { productId: parseInt(id), quantity: quantity });
                 // Fait disparaître le message après 3 secondes
                 setTimeout(() => setSuccessMessage(""), 3000);
             })
