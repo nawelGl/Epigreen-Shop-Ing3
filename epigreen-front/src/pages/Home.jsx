@@ -57,6 +57,8 @@ export default function Home() {
     const currentProducts = activeTabProducts.slice(indexOfFirstItem, indexOfLastItem);
     const totalPages = Math.ceil(activeTabProducts.length / itemsPerPage);
 
+
+    // genderSection d'après la bd product
     const sections = ["Women", "Men", "Unisex", "Girls", "Boys"];
 
     // Fonction pour changer d'onglet (et remettre la page à 1)
@@ -68,7 +70,7 @@ export default function Home() {
     return (
         <div>
             <Header userName={userName} onSearch={setSearchTerm} />
-
+            {/* TODO: implémenter ms-recommandation */}
             <div className="container">
                 <h2 style={{ color: 'var(--primary)', marginTop: '0' }}>✨ Recommandations pour vous</h2>
                 <div className="row" style={{ gap: '20px', flexWrap: 'nowrap', overflowX: 'auto', paddingBottom: '10px' }}>
@@ -83,8 +85,10 @@ export default function Home() {
 
                 <hr style={{ border: '0', borderTop: '1px solid var(--border)', margin: '30px 0' }} />
 
-                {/* --- BARRE D'ONGLETS --- */}
+                {/* Barre d'onglet */}
                 <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', borderBottom: '2px solid #eee', overflowX: 'auto' }}>
+
+                    {/* Mapping selon section*/}
                     {sections.map(section => (
                         <button
                             key={section}
@@ -107,7 +111,7 @@ export default function Home() {
                     ))}
                 </div>
 
-               {/* --- AFFICHAGE DES PRODUITS DE L'ONGLET --- */}
+               {/* Afficage des produits */}
                <div style={{ 
                     display: "grid", 
                     gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", 
@@ -127,10 +131,10 @@ export default function Home() {
                             onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)'; }} 
                             onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
                                 
-                                {/* Placeholder de l'image (fixe) */}
+                                {/* Placeholder de l'image */}
                                 <div style={{ backgroundColor: "#f0f0f0", height: "200px", borderRadius: "8px", marginBottom: "15px", width: "100%", flexShrink: 0 }} />
                                 
-                                {/* Conteneur du texte (flexible) */}
+                                {/* Conteneur du texte => flexible */}
                                 <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
                                     
                                     <p style={{ margin: '0 0 5px 0', fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -164,7 +168,7 @@ export default function Home() {
                                                 fontSize: '0.8rem',
                                                 maxWidth: '120px', 
                                                 whiteSpace: 'nowrap', 
-                                                overflow: 'hidden', // on cache si la taille de texte dépasse
+                                                overflow: 'hidden', // on cache si la taille de texte dépasse  => "...."
                                                 textOverflow: 'ellipsis' 
                                             }}>
                                                 {p.sizes}
@@ -177,13 +181,13 @@ export default function Home() {
                     ))}
                 </div>
 
-                {/* --- CONTRÔLES DE PAGINATION --- */}
+                {/* Controle des paginations => boutton Precedent et Suivant (blocages premier/dernier des pages) */}
                 {totalPages > 1 && (
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginTop: '40px' }}>
                         <button 
                             onClick={() => setCurrentPage(prev => prev - 1)} 
                             disabled={currentPage === 1}
-                            style={{ padding: '8px 16px', borderRadius: '4px', border: '1px solid #ccc', background: currentPage === 1 ? '#f9f9f9' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                            style={{ padding: '8px 16px', borderRadius: '4px', color: currentPage === 1 ? '#aaa' : '#333',border: '1px solid #ccc', background: currentPage === 1 ? '#f9f9f9' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
                         >
                             Précédent
                         </button>
@@ -195,12 +199,14 @@ export default function Home() {
                         <button 
                             onClick={() => setCurrentPage(prev => prev + 1)} 
                             disabled={currentPage === totalPages}
-                            style={{ padding: '8px 16px', borderRadius: '4px', border: '1px solid #ccc', background: currentPage === totalPages ? '#f9f9f9' : 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                            style={{ padding: '8px 16px', borderRadius: '4px',color: currentPage === totalPages ? '#aaa' : '#333', border: '1px solid #ccc', background: currentPage === totalPages ? '#f9f9f9' : 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
                         >
                             Suivant
                         </button>
                     </div>
                 )}
+
+                {/* Cas d'absence des produits */}
 
                 {activeTabProducts.length === 0 && (
                     <div style={{ textAlign: 'center', marginTop: '50px', padding: '40px', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>

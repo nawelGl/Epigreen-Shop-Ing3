@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@CrossOrigin(origins = "*") // aceepter les navigateurs
 @RequestMapping("/api/cart")
 @RequiredArgsConstructor
 public class CartController {
