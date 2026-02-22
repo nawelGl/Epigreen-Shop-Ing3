@@ -7,6 +7,9 @@ import ms_product.application.dto.ProductResponseDTO;
 import ms_product.application.mapper.ProductMapper;
 import ms_product.domain.entity.Product;
 import ms_product.domain.repository.ProductRepository;
+
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -67,5 +70,13 @@ public class ProductService {
             throw new EntityNotFoundException("Produit introuvable avec l'ID : " + id);
         }
         productRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true) // pas besoin de modifier dans la ms
+    public List<ProductResponseDTO> getRecommendations(Long userId) {
+        List<Product> recommendedProducts = productRepository.findRecommendationsForUser(userId);
+        return recommendedProducts.stream()
+                .map(productMapper::toDto)
+                .toList();
     }
 }
