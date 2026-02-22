@@ -16,7 +16,9 @@ public interface StockRepository extends JpaRepository<Stock, Integer> {
     List<Stock> findByProductId(Integer productId);
 
     @EntityGraph(attributePaths = { "product" })
-    Optional<Stock> findByProductIdAndSizeLabel(Integer productId, String sizeLabel);
+    Optional<Stock> findByProductIdAndSizeLabelAndWarehouseId(Integer productId, String sizeLabel, Integer warehouseId);
 
-    boolean existsByProductIdAndSizeLabel(Integer productId, String sizeLabel);
+    boolean existsByProductIdAndSizeLabelAndWarehouseId(Integer productId, String sizeLabel, Integer warehouseId);
+
+    List<Stock> findByWarehouseId(Integer warehouseId);
 }

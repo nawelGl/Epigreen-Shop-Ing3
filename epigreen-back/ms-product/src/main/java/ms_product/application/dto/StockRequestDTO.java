@@ -25,4 +25,7 @@ public class StockRequestDTO {
     @NotNull(message = "La quantité est obligatoire")
     @Min(value = 0, message = "La quantité ne peut pas être négative")
     private Integer quantity;
+
+    @NotNull(message = "L'ID de l'entrepôt est obligatoire")
+    private Integer warehouseId;
 }

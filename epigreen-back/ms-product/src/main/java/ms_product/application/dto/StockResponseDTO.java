@@ -14,4 +14,5 @@ public class StockResponseDTO {
     private Integer productId;
     private String sizeLabel;
     private Integer quantity;
+    private Integer warehouseId;
 }

@@ -38,4 +38,9 @@ public class Stock {
     @Column(name = "quantity_available", nullable = false)
     @Builder.Default
     private Integer quantity = 0;
+
+    @NotNull(message = "L'entrepôt est obligatoire")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_warehouse", nullable = false)
+    private Warehouse warehouse;
 }

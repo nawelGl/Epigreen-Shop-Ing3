@@ -5,6 +5,7 @@ import ms_product.application.dto.StockRequestDTO;
 import ms_product.application.dto.StockResponseDTO;
 import ms_product.domain.entity.Product;
 import ms_product.domain.entity.Stock;
+import ms_product.domain.entity.Warehouse;
 
 @Component
 public class StockMapper {
@@ -13,7 +14,7 @@ public class StockMapper {
      * Convertit un DTO en entité Stock.
      * Le produit doit être récupéré par le Service et passé en paramètre.
      */
-    public Stock toEntity(StockRequestDTO dto, Product product) {
+    public Stock toEntity(StockRequestDTO dto, Product product, Warehouse warehouse) {
         if (dto == null)
             return null;
 
@@ -21,6 +22,7 @@ public class StockMapper {
                 .product(product)
                 .sizeLabel(dto.getSizeLabel())
                 .quantity(dto.getQuantity() != null ? dto.getQuantity() : 0)
+                .warehouse(warehouse)
                 .build();
     }
 
@@ -37,6 +39,7 @@ public class StockMapper {
                 .productId(stock.getProduct() != null ? stock.getProduct().getId() : null)
                 .sizeLabel(stock.getSizeLabel())
                 .quantity(stock.getQuantity())
+                .warehouseId(stock.getWarehouse() != null ? stock.getWarehouse().getId() : null)
                 .build();
     }
 
