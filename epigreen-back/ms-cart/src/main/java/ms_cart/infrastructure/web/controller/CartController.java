@@ -31,4 +31,10 @@ public class CartController {
         cartService.clearCart(userId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{userId}/items")
+    public ResponseEntity<java.util.List<?>> getCartItems(@PathVariable String userId) {
+    // get qll items de panier
+    return ResponseEntity.ok(cartService.getCart(userId).getItems());
+}
 }

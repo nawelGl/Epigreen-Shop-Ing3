@@ -68,6 +68,7 @@ public class CartService {
                 .orElse(Cart.builder().userId(userId).build());
     }
 
+
     public void clearCart(String userId) {
         cartRepository.deleteById(userId);
     }
