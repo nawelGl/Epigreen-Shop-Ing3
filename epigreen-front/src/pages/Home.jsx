@@ -7,13 +7,28 @@ import { CONFIG } from "../api/config";
 export default function Home() {
     const [products, setProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [recommendations, setRecommendations] = useState([]);
     
     // états pour les onglets et la pagination
     const [activeTab, setActiveTab] = useState("Women");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12; // Nombre de produits affichés par page
 
+
+    // Récupération informations user => nom et id
     const userName = localStorage.getItem('epigreen_user_name');
+    const userId = localStorage.getItem('epigreen_user_id');
+
+    // Charger les recommandations
+    useEffect(() => {
+        if (userId) {
+            axios.get(`${CONFIG.API.PRODUCT}/recommendations/${userId}`)
+                .then(res => {
+                    setRecommendations(res.data);
+                })
+                .catch(err => console.error("Erreur de chargement des recommandations :", err));
+        }
+    }, [userId]);
 
     // Récupération des produits au chargement
     useEffect(() => {
@@ -68,19 +83,64 @@ export default function Home() {
     };
 
     return (
-        <div>
+        <div>        
             <Header userName={userName} onSearch={setSearchTerm} />
-            {/* TODO: implémenter ms-recommandation */}
+            
             <div className="container">
+                {/* --- SECTION RECOMMANDATIONS --- */}
                 <h2 style={{ color: 'var(--primary)', marginTop: '0' }}>✨ Recommandations pour vous</h2>
-                <div className="row" style={{ gap: '20px', flexWrap: 'nowrap', overflowX: 'auto', paddingBottom: '10px' }}>
-                    {[1, 2, 3, 4].map((item) => (
-                        <div key={`rec-${item}`} className="card" style={{ minWidth: '220px', backgroundColor: '#fafafa', borderStyle: 'dashed', borderColor: '#ccc' }}>
-                            <div style={{ height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa' }}>
-                                Bientôt disponible...
+                <div className="row" style={{ gap: '20px', flexWrap: 'nowrap', justifyContent: 'center',overflowX: 'auto', paddingBottom: '10px' }}>
+                    
+                    {/* Condition : Y a-t-il des recommandations ? */}
+                    {recommendations && recommendations.length > 0 ? (
+                        
+                        /* si oui  =>  affiche les produits recommandés */
+                        recommendations.map((p) => (
+                            <Link key={`rec-${p.id}`} to={`/products/${p.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+                                <div className="card" style={{ 
+                                    minWidth: '220px', 
+                                    maxWidth: '220px',
+                                    height: '100%',
+                                    display: 'flex', 
+                                    flexDirection: 'column',
+                                    padding: '15px',
+                                    boxSizing: 'border-box',
+                                    backgroundColor: '#fff',
+                                    border: '1px solid #eaeaea',
+                                    transition: 'transform 0.2s, box-shadow 0.2s'
+                                }}
+                                onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)'; }} 
+                                onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                                    
+                                    <div style={{ backgroundColor: "#f0f0f0", height: "140px", borderRadius: "8px", marginBottom: "15px", width: "100%", flexShrink: 0 }} />
+                                    
+                                    <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                                        <p style={{ margin: '0 0 5px 0', fontSize: '0.7rem', color: '#888', textTransform: 'uppercase' }}>
+                                            {p.mainCategory}
+                                        </p>
+                                        <h3 style={{ margin: '0 0 10px 0', fontSize: '1rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.2' }}>
+                                            {p.name}
+                                        </h3>
+                                        <div style={{ marginTop: 'auto' }}>
+                                            <strong style={{ color: 'var(--primary)', fontSize: '1.1rem' }}>{p.price} €</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))
+
+                    ) : (
+
+                        /* pas de recommandation => On affiche les 4 cartes "Bientôt disponible" */
+                        [1, 2, 3, 4].map((item) => (
+                            <div key={`rec-placeholder-${item}`} className="card" style={{ minWidth: '220px', backgroundColor: '#fafafa', borderStyle: 'dashed', borderColor: '#ccc' }}>
+                                <div style={{ height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa' }}>
+                                    Bientôt disponible...
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))
+                        
+                    )}
                 </div>
 
                 <hr style={{ border: '0', borderTop: '1px solid var(--border)', margin: '30px 0' }} />

@@ -5,12 +5,15 @@ import lombok.RequiredArgsConstructor;
 import ms_product.application.dto.ProductRequestDTO;
 import ms_product.application.dto.ProductResponseDTO;
 import ms_product.application.service.ProductService;
+import ms_product.domain.entity.Product;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -49,4 +52,11 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/recommendations/{userId}")
+    public ResponseEntity<List<ProductResponseDTO>> getRecommendations(@PathVariable Long userId) {
+        List<ProductResponseDTO> recommendations = productService.getRecommendations(userId);
+                return ResponseEntity.ok(recommendations);
+    }
+
 }

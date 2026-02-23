@@ -7,5 +7,6 @@ public class CartItemRequestDTO {
     private Long productId;
     private String productName;
     private Double price;
+    private String size;
     private Integer quantity;
 }
