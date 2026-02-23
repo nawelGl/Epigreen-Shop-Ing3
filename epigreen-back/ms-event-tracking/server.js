@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const trackRoutes = require('./src/routes/trackRoutes');
 const { connectProducer } = require('./src/services/kafkaProducer');
+const { register } = require('./src/services/metricsService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,4 +22,24 @@ app.listen(PORT, async () => {
     
     // Initialisation de la connexion Kafka
     await connectProducer();
+});
+
+
+
+
+
+// route pour Promethus
+app.get('/metrics', async (req, res) => {
+    try {
+        res.set('Content-Type', register.contentType);
+        res.end(await register.metrics());
+    } catch (ex) {
+        res.status(500).end(ex);
+    }
+});
+
+
+app.listen(PORT, () => {
+    console.log(`Tracking service running on port ${PORT}`);
+    console.log(`Metrics available at http://localhost:${PORT}/metrics`);
 });

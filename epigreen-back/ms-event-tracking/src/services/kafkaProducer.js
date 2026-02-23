@@ -34,7 +34,7 @@ const sendEvent = async (eventData) => {
                 topic = 'user-event-search';
                 break;
             default:
-                console.warn(`⚠️ Type d'événement ignoré (aucun topic correspondant): ${eventData.eventType}`);
+                console.warn(` Type d'événement ignoré (aucun topic correspondant): ${eventData.eventType}`);
                 return; // On n'envoie rien si le type est inconnu
         }
 
@@ -46,7 +46,7 @@ const sendEvent = async (eventData) => {
             ],
         });
         
-        console.log(`➡️ Événement [${eventData.eventType}] envoyé au topic [${topic}]`);
+        console.log(` Événement userID [${eventData.userId}] | eventData [${JSON.stringify(eventData.eventData)}] | EventType[${eventData.eventType}] envoyé au topic [${topic}]`);
     } catch (error) {
         console.error(` Échec de l'envoi au topic Kafka:`, error);
     }

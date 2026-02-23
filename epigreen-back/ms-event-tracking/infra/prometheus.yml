@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 5s # Fréquence de collecte des données => 5 sec
+
+scrape_configs:
+  - job_name: 'event-tracking-nodejs'
+    metrics_path: '/metrics'
+    static_configs:
+      # tourne en local (port 3000). => à vérifier lors de déploiment
+      - targets: ['host.docker.internal:3000']
