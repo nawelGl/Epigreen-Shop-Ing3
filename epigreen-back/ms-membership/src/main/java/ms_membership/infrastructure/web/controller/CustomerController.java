@@ -1,4 +1,4 @@
-package ms_membership.web.controller;
+package ms_membership.infrastructure.web.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
