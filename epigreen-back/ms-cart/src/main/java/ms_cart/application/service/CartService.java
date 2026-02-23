@@ -44,7 +44,8 @@ public class CartService {
                 .orElse(Cart.builder().userId(userId).build());
 
         Optional<CartItem> existingItem = cart.getItems().stream()
-                .filter(item -> item.getProductId().equals(request.getProductId()))
+                .filter(item -> item.getProductId().equals(request.getProductId())
+                && item.getSize().equals(request.getSize()))
                 .findFirst();
         // verifer si on a deja un item si oui augmenter la quantite
         if (existingItem.isPresent()) {
@@ -56,6 +57,7 @@ public class CartService {
                     .productName(Product.getName())
                     .price(Product.getPrice())
                     .quantity(request.getQuantity())
+                    .size(request.getSize())
                     .build();
             cart.getItems().add(newItem);
         }

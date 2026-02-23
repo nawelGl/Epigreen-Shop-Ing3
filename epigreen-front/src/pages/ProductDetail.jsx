@@ -12,6 +12,7 @@ export default function ProductDetail() {
     const [quantity, setQuantity] = useState(1);
     const [isAdding, setIsAdding] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
+    const [selectedSize, setSelectedSize] = useState("");
 
     const userName = localStorage.getItem('epigreen_user_name');
     const userId = localStorage.getItem('epigreen_user_id');
@@ -25,12 +26,18 @@ export default function ProductDetail() {
 
     // 2. Logique d'ajout au panier 
     const handleAddToCart = () => {
+        if (!selectedSize) {
+            alert("Veuillez sélectionner une taille !");
+            return;
+        }
+        
         setIsAdding(true);
         setSuccessMessage("");
 
         const payload = {
             productId: parseInt(id),
-            quantity: quantity
+            quantity: quantity,
+            size: selectedSize
         };
 
         // Appel POST 
@@ -95,6 +102,29 @@ export default function ProductDetail() {
 
                         {/* TODO: implémenter la score EC=> icon de l'année dernière ? */}
                         {product.scoreEc && <p><strong>Score Écologique :</strong> {product.scoreEc} 🍃</p>}
+                    </div>
+
+                    {/* Sélecteur de size --- */}
+                    <div style={{ marginBottom: '25px' }}>
+                        <p style={{ fontWeight: 'bold' }}>Sélectionner une taille :</p>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            {availableSizes.map(size => (
+                                <button
+                                    key={size}
+                                    onClick={() => setSelectedSize(size.trim())}
+                                    style={{
+                                        padding: '10px 20px',
+                                        border: selectedSize === size.trim() ? '2px solid green' : '1px solid #ccc',
+                                        backgroundColor: selectedSize === size.trim() ? '#e6fffa' : 'white',
+                                        borderRadius: '5px',
+                                        cursor: 'pointer',
+                                        fontWeight: selectedSize === size.trim() ? 'bold' : 'normal'
+                                    }}
+                                >
+                                    {size.trim()}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                     
                     {/* Sélecteur de quantité */}
