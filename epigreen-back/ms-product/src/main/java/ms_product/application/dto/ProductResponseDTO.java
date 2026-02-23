@@ -22,5 +22,6 @@ public class ProductResponseDTO {
     private String subCategory;
     private String articleType;
     private Integer scoreEc;
+    private String scoreLabel;
     private Double price;
 }

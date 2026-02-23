@@ -45,6 +45,8 @@ public class ProductRequestDTO {
 
     private Integer scoreEc;
 
+    private String scoreLabel;
+
     @NotNull(message = "Le prix est obligatoire")
     @DecimalMin(value = "0.0", inclusive = false, message = "Le prix doit être positif")
     private Double price;

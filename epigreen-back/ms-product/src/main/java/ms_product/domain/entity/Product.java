@@ -62,6 +62,9 @@ public class Product {
     @Builder.Default
     private Integer scoreEc = 0;
 
+    @Column(name = "score_label")
+    private String scoreLabel ;
+
     @Column(name = "price")
     private Double price;
 }

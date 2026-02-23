@@ -19,7 +19,6 @@ export default function ProductDetail() {
     const userId = localStorage.getItem('epigreen_user_id');
 
 
-
     // 1. Récupération des détails du produit
     useEffect(() => {
         axios.get(`${CONFIG.API.PRODUCT}/${id}`)
@@ -77,6 +76,9 @@ export default function ProductDetail() {
         </div>
     );
 
+    const availableSizes = product.sizes ? product.sizes.split(',') : ['Unique'];
+
+
     return (
         <div>
             <Header userName={userName} onSearch={() => navigate('/')} />
@@ -110,7 +112,6 @@ export default function ProductDetail() {
                         <p><strong>Couleur :</strong> {product.color || 'Non spécifiée'}</p>
                         <p><strong>Tailles disponibles :</strong> {product.sizes || 'Taille unique'}</p>
 
-                        {/* TODO: implémenter la score EC=> icon de l'année dernière ? */}
                         {product.scoreEc && <p><strong>Score Écologique :</strong> {product.scoreEc} 🍃</p>}
                     </div>
 
@@ -128,6 +129,7 @@ export default function ProductDetail() {
                                         backgroundColor: selectedSize === size.trim() ? '#e6fffa' : 'white',
                                         borderRadius: '5px',
                                         cursor: 'pointer',
+                                        color:'black',
                                         fontWeight: selectedSize === size.trim() ? 'bold' : 'normal'
                                     }}
                                 >
