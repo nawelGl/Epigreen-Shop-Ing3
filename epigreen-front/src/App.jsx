@@ -7,6 +7,7 @@ import Cart from './pages/Cart';
 import './index.css';
 import Checkout from './pages/Checkout';
 import Tracker from './pages/Tracker';
+import Orders from './pages/Orders';
 
 export default function App() {
     // État d'authentification avec userId
@@ -26,6 +27,7 @@ export default function App() {
                 <Route path="/products/:id" element={isAuth ? <ProductDetail /> : <Navigate to="/login" replace />} />
                 <Route path="/checkout" element={isAuth ? <Checkout /> : <Navigate to="/login" replace />} />
                 <Route path="/tracker/:id" element={isAuth ? <Tracker /> : <Navigate to="/login" replace />} />
+                <Route path="/orders" element={isAuth ? <Orders /> : <Navigate to="/login" replace />} />
             </Routes>
         </Router>
     );

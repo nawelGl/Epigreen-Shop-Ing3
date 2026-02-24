@@ -109,4 +109,13 @@ public class DeliveryController {
         }
         return new ResponseEntity<>(deliveryMapper.toResponseDTO(updated), HttpStatus.OK);
     }
+
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<List<DeliveryResponseDTO>> getDeliveriesByCustomer(@PathVariable Long customerId) {
+        List<Delivery> deliveries = deliveryService.findByCustomerId(customerId);
+        List<DeliveryResponseDTO> dtos = deliveries.stream()
+                .map(deliveryMapper::toResponseDTO)
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(dtos, HttpStatus.OK);
+    }
 }

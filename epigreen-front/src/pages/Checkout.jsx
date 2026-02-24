@@ -61,37 +61,55 @@ export default function Checkout() {
         setIsLoading(true);
 
         try {
-            const createPayload = {
-                orderId: Math.floor(Math.random() * 10000),
-                customerId: parseInt(userId),
+            if (!userAddress?.street || !userAddress?.city || !userAddress?.zipCode) {
+                alert("Adresse de livraison manquante.");
+                return;
+            }
+
+            // 1) CRÉATION DE LA COMMANDE (ms-order)
+            const orderResponse = await axios.post(`${CONFIG.API.ORDER}`, {
+                customerId: Number(userId),
+                shippingStreet: userAddress.street,
+                shippingCity: userAddress.city,
+                shippingZipCode: userAddress.zipCode,
+                // shippingCountry: "France"
+            });
+
+            const realOrderId = orderResponse.data.id;
+            console.log("Commande créée avec succès, ID:", realOrderId);
+
+            // 2) CRÉATION DE LA LIVRAISON (ms-delivery)
+            const deliveryData = {
+                orderId: realOrderId,
+                customerId: Number(userId),
                 originWarehouseId: 1,
-                originLat: 45.7640,
-                originLon: 4.8357,
+                originLat: 48.75,
+                originLon: 2.30,
                 destStreet: userAddress.street,
                 destCity: userAddress.city,
                 destZipCode: userAddress.zipCode,
                 destLat: userAddress.lat,
-                destLon: userAddress.lon
+                destLon: userAddress.lon,
+                deliveryMethod: deliveryMethod,
             };
 
-            const createRes = await axios.post(`${CONFIG.API.DELIVERY}/create`, createPayload);
-            const newDeliveryId = createRes.data.id;
+            const created = await axios.post(`${CONFIG.API.DELIVERY}/create`, deliveryData);
 
-            const checkoutPayload = {
-                deliveryId: newDeliveryId,
-                deliveryMethod: deliveryMethod
-            };
+            // 2bis) FINALISATION (calcul distance / CO2 / score)
+            const finalized = await axios.post(`${CONFIG.API.DELIVERY}/checkout`, {
+                deliveryId: created.data.id,
+                deliveryMethod: deliveryMethod,
+            });
 
-            console.log("Payload envoyé:", createPayload);
-
-            await axios.post(`${CONFIG.API.DELIVERY}/checkout`, checkoutPayload);
-            await axios.delete(`${CONFIG.API.CART}/${userName}`);
-
-            navigate(`/tracker/${newDeliveryId}`);
-
-        } catch (error) {
-            console.error("Erreur lors de la validation :", error);
-            alert("Une erreur est survenue lors de la validation de la commande.");
+            // 3) REDIRECTION
+            navigate(`/tracker/${finalized.data.id}`);
+        } catch (err) {
+            console.error("Erreur lors du checkout:", err);
+            console.error("Status:", err.response?.status);
+            console.error("Data:", err.response?.data);
+            console.error("Headers:", err.response?.headers);
+            alert(err.response?.data?.message || "Erreur lors de la validation de la commande.");
+        } finally {
             setIsLoading(false);
         }
     };

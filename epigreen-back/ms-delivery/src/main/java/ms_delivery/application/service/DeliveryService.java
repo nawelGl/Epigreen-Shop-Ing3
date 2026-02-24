@@ -137,4 +137,8 @@ public class DeliveryService {
         }
         return null;
     }
+
+    public List<Delivery> findByCustomerId(Long customerId) {
+        return deliveryRepository.findByCustomerId(customerId);
+    }
 }
