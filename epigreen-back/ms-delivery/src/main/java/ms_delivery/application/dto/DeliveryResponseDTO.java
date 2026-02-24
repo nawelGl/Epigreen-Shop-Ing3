@@ -26,4 +26,8 @@ public class DeliveryResponseDTO {
     private LocalDateTime estimatedDeliveryDate;
     private Double calculatedDistance;
     private String deliveryScore;
+    private Double originLat;
+    private Double originLon;
+    private Double destLat;
+    private Double destLon;
 }

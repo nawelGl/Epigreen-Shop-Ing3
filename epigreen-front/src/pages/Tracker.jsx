@@ -25,7 +25,8 @@ export default function Tracker() {
     const userName = localStorage.getItem('epigreen_user_name');
 
     useEffect(() => {
-        // Appelle le endpoint GET /api/delivery/{id} de ms-delivery
+        let intervalId;
+
         const fetchDelivery = async () => {
             try {
                 const res = await axios.get(`${CONFIG.API.DELIVERY}/${id}`);
@@ -38,6 +39,9 @@ export default function Tracker() {
         };
 
         fetchDelivery();
+        intervalId = setInterval(fetchDelivery, 3000);
+
+        return () => clearInterval(intervalId);
     }, [id]);
 
     // Fonction pour déterminer la couleur du score

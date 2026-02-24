@@ -2,6 +2,10 @@ package ms_delivery.application.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import ms_delivery.application.dto.DeliveryCreateDTO;
 import ms_delivery.domain.entity.Delivery;
 import ms_delivery.domain.entity.DeliveryMethod;
@@ -73,16 +77,17 @@ public class DeliveryService {
 
 
     private Double calculateDistance(Double lat1, Double lon1, Double lat2, Double lon2) {
-        if (lat1 == null || lon1 == null || lat2 == null || lon2 == null)
-            return 0.0;
-        final int R = 6371; // Rayon de la terre
+        if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) {
+            return null;
+        }
+        final double R = 6371.0; // km
         double latDist = Math.toRadians(lat2 - lat1);
         double lonDist = Math.toRadians(lon2 - lon1);
         double a = Math.sin(latDist / 2) * Math.sin(latDist / 2)
                 + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
                         * Math.sin(lonDist / 2) * Math.sin(lonDist / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return Math.round((R * c) * 100.0) / 100.0;
+        return R * c;
     }
 
     private DeliveryScore calculateScore(Double carbonFootprint) {
@@ -141,4 +146,33 @@ public class DeliveryService {
     public List<Delivery> findByCustomerId(Long customerId) {
         return deliveryRepository.findByCustomerId(customerId);
     }
+
+    public void updateCurrentLocation(String jsonPayload) {
+    ObjectMapper mapper = new ObjectMapper();
+    try {
+        JsonNode node = mapper.readTree(jsonPayload);
+        Long deliveryId = node.get("deliveryId").asLong();
+        Double lat = node.get("lat").asDouble();
+        Double lon = node.get("lon").asDouble();
+
+        Delivery delivery = deliveryRepository.findById(deliveryId).orElse(null);
+        if (delivery != null) {
+            delivery.setCurrentLat(lat);
+            delivery.setCurrentLon(lon);
+            deliveryRepository.save(delivery);
+        }
+
+        if (delivery.getStatus() != DeliveryStatus.DELIVERED) {
+            delivery.setStatus(DeliveryStatus.IN_TRANSIT);
+        }
+
+        Double distKm = calculateDistance(lat, lon, delivery.getDestLat(), delivery.getDestLon());
+        if (distKm != null && distKm <= 0.03) { // 30m
+            delivery.setStatus(DeliveryStatus.DELIVERED);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
 }

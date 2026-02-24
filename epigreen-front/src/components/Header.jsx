@@ -120,7 +120,7 @@ export default function Header({ userName, onSearch }) {
                     )}
                 </Link>
 
-                {/* Dropdown "Compte" (remplace le bouton déconnexion sans casser le design) */}
+                {/* Dropdown "Compte" */}
                 <div ref={menuRef} style={{ position: 'relative' }}>
                     <button
                         className="small"
@@ -154,7 +154,6 @@ export default function Header({ userName, onSearch }) {
                                 zIndex: 9999
                             }}
                         >
-                            {/* ⚠️ Adapte cette route si la tienne est différente */}
                             <Link
                                 to="/orders"
                                 role="menuitem"

@@ -118,4 +118,14 @@ public class DeliveryController {
                 .collect(Collectors.toList());
         return new ResponseEntity<>(dtos, HttpStatus.OK);
     }
+
+    @PostMapping("/update-location")
+    public ResponseEntity<Void> updateLocation(@RequestBody String payload) {
+        try {
+            deliveryService.updateCurrentLocation(payload);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

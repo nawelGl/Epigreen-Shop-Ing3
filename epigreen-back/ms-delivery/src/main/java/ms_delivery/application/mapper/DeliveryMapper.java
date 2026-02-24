@@ -27,6 +27,10 @@ public class DeliveryMapper {
                 .carbonFootprint(delivery.getCarbonFootprint())
                 .score(delivery.getDeliveryScore())
                 .estimatedDeliveryDate(delivery.getEstimatedDeliveryDate())
+                .originLat(delivery.getOriginLat())
+                .originLon(delivery.getOriginLon())
+                .destLat(delivery.getDestLat())
+                .destLon(delivery.getDestLon())
                 .build();
     }
 }
