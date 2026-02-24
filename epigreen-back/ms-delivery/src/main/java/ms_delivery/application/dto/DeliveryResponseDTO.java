@@ -15,6 +15,7 @@ public class DeliveryResponseDTO {
     private String trackingNumber;
     private DeliveryStatus status;
     private DeliveryMethod deliveryMethod;
+    private String destinationStreet;
     private String destinationCity;
     private String destinationZipCode;
     private Double currentLat;
@@ -23,4 +24,6 @@ public class DeliveryResponseDTO {
     private Double carbonFootprint;
     private DeliveryScore score;
     private LocalDateTime estimatedDeliveryDate;
+    private Double calculatedDistance;
+    private String deliveryScore;
 }

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ms_delivery.application.dto.DeliveryCreateDTO;
 import ms_delivery.domain.entity.Delivery;
+import ms_delivery.domain.entity.DeliveryMethod;
 import ms_delivery.domain.entity.DeliveryScore;
 import ms_delivery.domain.entity.DeliveryStatus;
 import ms_delivery.domain.repository.DeliveryRepository;
@@ -42,7 +43,8 @@ public class DeliveryService {
         delivery.setCalculatedDistance(distance);
 
         // 2. Calcul du CO2
-        Double co2 = distance * 0.15;
+        double factor = (delivery.getDeliveryMethod() == DeliveryMethod.POINT_RELAIS) ? 0.08 : 0.15;
+        Double co2 = Math.round((distance * factor) * 100.0) / 100.0;
         delivery.setCarbonFootprint(co2);
 
         // 3. Attribution du Score

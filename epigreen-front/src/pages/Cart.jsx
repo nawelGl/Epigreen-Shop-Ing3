@@ -100,7 +100,7 @@ export default function Cart() {
                                     Vider le panier
                                 </button>
                                 
-                                <button style={{ padding: '12px 30px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                                    <button onClick={() => navigate('/checkout')} style={{ padding: '12px 30px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '1.1rem', fontWeight: 'bold' }}>
                                     Passer la commande 
                                 </button>
                             </div>

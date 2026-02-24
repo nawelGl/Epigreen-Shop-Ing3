@@ -5,8 +5,6 @@ import lombok.RequiredArgsConstructor;
 import ms_product.application.dto.ProductRequestDTO;
 import ms_product.application.dto.ProductResponseDTO;
 import ms_product.application.service.ProductService;
-import ms_product.domain.entity.Product;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;

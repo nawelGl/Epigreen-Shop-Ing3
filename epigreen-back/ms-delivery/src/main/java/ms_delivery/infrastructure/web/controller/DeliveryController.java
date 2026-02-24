@@ -14,6 +14,7 @@ import ms_delivery.domain.entity.Delivery;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/delivery")
 public class DeliveryController {

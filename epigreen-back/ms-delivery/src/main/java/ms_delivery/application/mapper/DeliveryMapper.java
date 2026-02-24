@@ -19,6 +19,7 @@ public class DeliveryMapper {
                 .status(delivery.getStatus())
                 .deliveryMethod(delivery.getDeliveryMethod())
                 .destinationCity(delivery.getDestCity())
+                .destinationStreet(delivery.getDestStreet())
                 .destinationZipCode(delivery.getDestZipCode())
                 .currentLat(delivery.getCurrentLat())
                 .currentLon(delivery.getCurrentLon())
