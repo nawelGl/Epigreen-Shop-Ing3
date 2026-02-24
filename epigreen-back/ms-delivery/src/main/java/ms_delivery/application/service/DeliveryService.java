@@ -1,13 +1,12 @@
-package ms_delivery.application;
+package ms_delivery.application.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import ms_delivery.application.dto.DeliveryCreateDTO;
 import ms_delivery.domain.entity.Delivery;
 import ms_delivery.domain.entity.DeliveryScore;
 import ms_delivery.domain.entity.DeliveryStatus;
 import ms_delivery.domain.repository.DeliveryRepository;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -96,5 +95,28 @@ public class DeliveryService {
         if (carbonFootprint <= 140)
             return DeliveryScore.D;
         return DeliveryScore.E;
+    }
+
+    /**
+     * Création initiale de la livraison (généralement appelée par ms-order)
+     */
+    public Delivery createDelivery(DeliveryCreateDTO createDTO) {
+        Delivery newDelivery = Delivery.builder()
+                .orderId(createDTO.getOrderId())
+                .customerId(createDTO.getCustomerId())
+                .originWarehouseId(createDTO.getOriginWarehouseId())
+                .originLat(createDTO.getOriginLat())
+                .originLon(createDTO.getOriginLon())
+                .destStreet(createDTO.getDestStreet())
+                .destCity(createDTO.getDestCity())
+                .destZipCode(createDTO.getDestZipCode())
+                .destLat(createDTO.getDestLat())
+                .destLon(createDTO.getDestLon())
+                .status(DeliveryStatus.PENDING)
+                // On génère un numéro de suivi temporaire ou définitif dès la création
+                .trackingNumber("TRK-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                .build();
+
+        return deliveryRepository.save(newDelivery);
     }
 }

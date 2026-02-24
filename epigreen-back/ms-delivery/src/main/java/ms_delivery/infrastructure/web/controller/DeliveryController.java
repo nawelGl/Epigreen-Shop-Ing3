@@ -5,9 +5,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ms_delivery.application.dto.DeliveryCheckoutDTO;
+import ms_delivery.application.dto.DeliveryCreateDTO;
 import ms_delivery.application.dto.DeliveryResponseDTO;
 import ms_delivery.application.mapper.DeliveryMapper;
 import ms_delivery.application.service.DeliveryService;
+import ms_delivery.application.service.geoapify.GeoapifyService;
 import ms_delivery.domain.entity.Delivery;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +20,8 @@ public class DeliveryController {
 
     @Autowired
     private DeliveryService deliveryService;
+    @Autowired
+    private GeoapifyService geoapifyService;
 
     @Autowired
     private DeliveryMapper deliveryMapper;
@@ -69,5 +73,24 @@ public class DeliveryController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(deliveryMapper.toResponseDTO(updated), HttpStatus.OK);
+    }
+
+    // Route pour créer la livraison initiale
+    @PostMapping("/create")
+    public ResponseEntity<DeliveryResponseDTO> createDelivery(@RequestBody DeliveryCreateDTO createDTO) {
+        Delivery created = deliveryService.createDelivery(createDTO);
+        return new ResponseEntity<>(deliveryMapper.toResponseDTO(created), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/autocomplete")
+    public ResponseEntity<List<String>> getAutocomplete(
+            @RequestParam(required = false, defaultValue = "") String address) {
+
+        if (address.trim().length() < 3) {
+            return new ResponseEntity<>(List.of(), HttpStatus.OK);
+        }
+
+        List<String> suggestions = geoapifyService.autocompleteAddress(address);
+        return new ResponseEntity<>(suggestions, HttpStatus.OK);
     }
 }
