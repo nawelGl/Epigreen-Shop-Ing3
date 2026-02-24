@@ -11,6 +11,8 @@ import ms_delivery.application.mapper.DeliveryMapper;
 import ms_delivery.application.service.DeliveryService;
 import ms_delivery.application.service.geoapify.GeoapifyService;
 import ms_delivery.domain.entity.Delivery;
+import ms_delivery.domain.entity.DeliveryStatus;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -93,5 +95,18 @@ public class DeliveryController {
 
         List<String> suggestions = geoapifyService.autocompleteAddress(address);
         return new ResponseEntity<>(suggestions, HttpStatus.OK);
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<DeliveryResponseDTO> forceStatus(
+            @PathVariable Long id, 
+            @RequestParam DeliveryStatus status) {
+        
+        Delivery updated = deliveryService.updateStatus(id, status);
+        
+        if (updated == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(deliveryMapper.toResponseDTO(updated), HttpStatus.OK);
     }
 }

@@ -121,4 +121,20 @@ public class DeliveryService {
 
         return deliveryRepository.save(newDelivery);
     }
+
+    public Delivery updateStatus(Long id, DeliveryStatus status) {
+        Optional<Delivery> opt = deliveryRepository.findById(id);
+        if (opt.isPresent()) {
+            Delivery delivery = opt.get();
+            delivery.setStatus(status);
+
+            if (status == DeliveryStatus.DELIVERED) {
+                System.out.println("Déclenchement de l'envoi du mail à l'utilisateur...");
+                // TODO : dev service de mail
+            }
+
+            return deliveryRepository.save(delivery);
+        }
+        return null;
+    }
 }

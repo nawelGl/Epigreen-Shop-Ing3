@@ -3,6 +3,19 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import Header from '../components/Header';
 import { CONFIG } from '../api/config';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 export default function Tracker() {
     const { id } = useParams(); // Récupère l'ID dans l'URL (ex: /tracker/15)
@@ -102,6 +115,39 @@ export default function Tracker() {
                         </span>
                     </div>
                 </div>
+
+                {/* 1. La Map (s'affiche seulement si en transit) */}
+                {delivery.status === 'IN_TRANSIT' && (
+                    <div style={{ marginTop: '20px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #ddd' }}>
+                        <h3 style={{ padding: '10px', margin: 0, backgroundColor: '#f8f9fa', fontSize: '1rem', textAlign: 'center' }}>
+                            📍 Position de votre colis en temps réel
+                        </h3>
+                        <MapContainer
+                            center={[delivery.currentLat || 48.8566, delivery.currentLon || 2.3522]}
+                            zoom={13}
+                            style={{ height: '350px', width: '100%' }}
+                        >
+                            <TileLayer
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                            />
+
+                            {/* Le marqueur du livreur */}
+                            <Marker position={[delivery.currentLat || 48.8566, delivery.currentLon || 2.3522]}>
+                                <Popup>
+                                    Votre colis est ici ! 📦
+                                </Popup>
+                            </Marker>
+                        </MapContainer>
+                    </div>
+                )}
+
+                {/* 2. Message de succès (s'affiche seulement si livré) */}
+                {delivery.status === 'DELIVERED' && (
+                    <div style={{ marginTop: '20px', backgroundColor: '#dcfce7', color: '#166534', padding: '15px', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold', border: '1px solid #bbf7d0' }}>
+                        ✅ Votre colis a été livré ! Un mail récapitulatif vous a été envoyé.
+                    </div>
+                )}
 
                 {/* Bouton retour */}
                 <div style={{ textAlign: 'center', marginTop: '30px' }}>
