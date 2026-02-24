@@ -112,7 +112,7 @@ export default function ProductDetail() {
                         <p><strong>Couleur :</strong> {product.color || 'Non spécifiée'}</p>
                         <p><strong>Tailles disponibles :</strong> {product.sizes || 'Taille unique'}</p>
 
-                        {product.scoreEc && <p><strong>Score Écologique :</strong> {product.scoreEc} 🍃</p>}
+                        {product.scoreEc && <p><strong>Score Écologique :</strong> {product.scoreLabel} 🍃</p>}
                     </div>
 
                     {/* Sélecteur de size --- */}
