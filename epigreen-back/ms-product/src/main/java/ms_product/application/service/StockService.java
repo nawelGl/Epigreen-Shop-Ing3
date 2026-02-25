@@ -7,8 +7,11 @@ import ms_product.application.dto.StockResponseDTO;
 import ms_product.application.mapper.StockMapper;
 import ms_product.domain.entity.Product;
 import ms_product.domain.entity.Stock;
+import ms_product.domain.entity.Warehouse;
 import ms_product.domain.repository.ProductRepository;
 import ms_product.domain.repository.StockRepository;
+import ms_product.domain.repository.WarehouseRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -22,6 +25,7 @@ public class StockService {
     private final StockRepository stockRepository;
     private final ProductRepository productRepository;
     private final StockMapper stockMapper;
+    private final WarehouseRepository warehouseRepository;
 
     /**
      * Définit ou met à jour le stock pour un produit et une taille donnés.
@@ -33,9 +37,15 @@ public class StockService {
                 .orElseThrow(
                         () -> new EntityNotFoundException("Produit introuvable avec l'ID : " + request.getProductId()));
 
+        Warehouse warehouse = warehouseRepository.findById(request.getWarehouseId())
+                .orElseThrow(() -> new EntityNotFoundException("Entrepôt introuvable : " + request.getWarehouseId()));
+
         // 2. Chercher si on a déjà une ligne de stock pour ce produit + cette taille
-        Optional<Stock> existingStockOpt = stockRepository.findByProductIdAndSizeLabel(
-                request.getProductId(), request.getSizeLabel());
+        Optional<Stock> existingStockOpt = stockRepository.findByProductIdAndSizeLabelAndWarehouseId(
+                request.getProductId(),
+                request.getSizeLabel(),
+                request.getWarehouseId()
+        );
 
         Stock stockToSave;
 
@@ -45,7 +55,7 @@ public class StockService {
             stockToSave.setQuantity(request.getQuantity());
         } else {
             // Création d'une nouvelle ligne
-            stockToSave = stockMapper.toEntity(request, product);
+            stockToSave = stockMapper.toEntity(request, product, warehouse);
         }
 
         Stock savedStock = stockRepository.save(stockToSave);

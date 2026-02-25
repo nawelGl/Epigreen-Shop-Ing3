@@ -11,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/stocks")
+@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class StockController {
 
@@ -21,8 +22,6 @@ public class StockController {
      */
     @PostMapping
     public ResponseEntity<StockResponseDTO> setStock(@Valid @RequestBody StockRequestDTO request) {
-        // On utilise OK (200) car cette méthode peut faire un CREATE (201) ou un UPDATE
-        // (200)
         return ResponseEntity.ok(stockService.setStock(request));
     }
 
