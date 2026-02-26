@@ -39,15 +39,15 @@ def get_route_osrm(origin_lat, origin_lon, dest_lat, dest_lon):
             data = r.json()
 
             coords = data["routes"][0]["geometry"]["coordinates"]  # [lon, lat]
-            # on convertit en [(lat, lon)] pour ton publish MQTT
+            # on convertit en [(lat, lon)] pour publish MQTT
             return [(lat, lon) for lon, lat in coords]
 
         except Exception as e:
             last_err = e
-            print(f"⚠️ OSRM tentative {attempt}/3 échouée: {e}")
+            print(f"OSRM tentative {attempt}/3 échouée: {e}")
             time.sleep(1.5 * attempt)
 
-    print("❌ OSRM indisponible, fallback ligne droite.")
+    print("OSRM indisponible, fallback ligne droite.")
     return interpolate_straight_line(origin_lat, origin_lon, dest_lat, dest_lon, points=200)
 
 
@@ -106,17 +106,17 @@ def main(delivery_id):
 
         time.sleep(SLEEP_SECONDS)
 
-    print("✅ Simulation terminée")
+    print("Simulation terminée")
     client.disconnect()
 
-    print("🚚 Simulation terminée, passage en DELIVERED...")
+    print("Simulation terminée, passage en DELIVERED...")
 
     requests.patch(
         f"http://localhost:8087/api/delivery/{delivery_id}/status",
         params={"status": "DELIVERED"}
     )
 
-    print("✅ Statut forcé en DELIVERED")
+    print("Statut forcé en DELIVERED")
 
 
 if __name__ == "__main__":

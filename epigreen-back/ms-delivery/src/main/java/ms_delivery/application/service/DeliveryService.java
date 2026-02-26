@@ -2,10 +2,9 @@ package ms_delivery.application.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.kafka.core.KafkaTemplate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import ms_delivery.application.dto.DeliveryCreateDTO;
 import ms_delivery.application.dto.GeoapifyResponseDTO;
 import ms_delivery.application.service.geoapify.GeoapifyService;
@@ -24,6 +23,8 @@ public class DeliveryService {
     private DeliveryRepository deliveryRepository;
     @Autowired
     private GeoapifyService geoapifyService;
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
 
     public Delivery findById(Long id) {
         return deliveryRepository.findById(id).orElse(null);
@@ -155,24 +156,53 @@ public class DeliveryService {
         return deliveryRepository.save(newDelivery);
     }
 
-    public Delivery updateStatus(Long id, DeliveryStatus status) {
-        Optional<Delivery> opt = deliveryRepository.findById(id);
-        if (opt.isPresent()) {
-            Delivery delivery = opt.get();
-            delivery.setStatus(status);
-
-            if (status == DeliveryStatus.DELIVERED) {
-                System.out.println("Déclenchement de l'envoi du mail à l'utilisateur...");
-                // TODO : dev service de mail
-            }
-
-            return deliveryRepository.save(delivery);
-        }
-        return null;
-    }
-
     public List<Delivery> findByCustomerId(Long customerId) {
         return deliveryRepository.findByCustomerId(customerId);
+    }
+
+    // public void updateCurrentLocation(String jsonPayload) {
+    //     ObjectMapper mapper = new ObjectMapper();
+    //     try {
+    //         JsonNode node = mapper.readTree(jsonPayload);
+    //         Long deliveryId = node.get("deliveryId").asLong();
+    //         Double lat = node.get("lat").asDouble();
+    //         Double lon = node.get("lon").asDouble();
+
+    //         Delivery delivery = deliveryRepository.findById(deliveryId).orElse(null);
+    //         if (delivery != null) {
+    //             delivery.setCurrentLat(lat);
+    //             delivery.setCurrentLon(lon);
+    //             deliveryRepository.save(delivery);
+    //         }
+
+    //         if (delivery.getStatus() != DeliveryStatus.DELIVERED) {
+    //             delivery.setStatus(DeliveryStatus.IN_TRANSIT);
+    //         }
+
+    //         Double distKm = calculateDistance(lat, lon, delivery.getDestLat(), delivery.getDestLon());
+    //         if (distKm != null && distKm <= 0.2) { // 200m
+    //             delivery.setStatus(DeliveryStatus.DELIVERED);
+    //         }
+
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //     }
+    // }
+
+    public Delivery updateStatus(Long id, DeliveryStatus status) {
+        Delivery delivery = deliveryRepository.findById(id).orElse(null);
+        if (delivery != null) {
+            delivery.setStatus(status);
+            Delivery savedDelivery = deliveryRepository.save(delivery);
+
+            // Déclenchement Kafka si le statut passe manuellement à DELIVERED
+            if (status == DeliveryStatus.DELIVERED) {
+                sendNotification(savedDelivery);
+            }
+
+            return savedDelivery;
+        }
+        return null;
     }
 
     public void updateCurrentLocation(String jsonPayload) {
@@ -187,20 +217,51 @@ public class DeliveryService {
             if (delivery != null) {
                 delivery.setCurrentLat(lat);
                 delivery.setCurrentLon(lon);
+
+                boolean justDelivered = false;
+
+                if (delivery.getStatus() != DeliveryStatus.DELIVERED) {
+                    delivery.setStatus(DeliveryStatus.IN_TRANSIT);
+                }
+
+                // Vérification de la distance (200m)
+                Double distKm = calculateDistance(lat, lon, delivery.getDestLat(), delivery.getDestLon());
+                if (distKm != null && distKm <= 0.2) {
+                    if (delivery.getStatus() != DeliveryStatus.DELIVERED) {
+                        delivery.setStatus(DeliveryStatus.DELIVERED);
+                        justDelivered = true;
+                    }
+                }
+
                 deliveryRepository.save(delivery);
-            }
 
-            if (delivery.getStatus() != DeliveryStatus.DELIVERED) {
-                delivery.setStatus(DeliveryStatus.IN_TRANSIT);
+                // Déclenchement Kafka uniquement à l'instant où on arrive à destination
+                if (justDelivered) {
+                    sendNotification(delivery);
+                }
             }
-
-            Double distKm = calculateDistance(lat, lon, delivery.getDestLat(), delivery.getDestLon());
-            if (distKm != null && distKm <= 0.2) { // 200m
-                delivery.setStatus(DeliveryStatus.DELIVERED);
-            }
-
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void sendNotification(Delivery delivery) {
+        try {
+            // MAIL FORCÉ POUR LES TESTS
+            String targetEmail = "ghazal.nawel@gmail.com";
+
+            String jsonMessage = String.format(
+                    "{\"customerEmail\":\"%s\", \"customerName\":\"Client #%d\", \"status\":\"DELIVERED\", \"trackingNumber\":\"%s\"}",
+                    targetEmail,
+                    delivery.getCustomerId() != null ? delivery.getCustomerId() : 0,
+                    delivery.getTrackingNumber() != null ? delivery.getTrackingNumber() : "INCONNU");
+
+            kafkaTemplate.send("order-notifications", jsonMessage).get();
+            System.out.println("KAFKA] Notification envoyée pour la livraison " + delivery.getId()
+                    + " à l'email forcé : " + targetEmail);
+            System.out.println("MESSAGE JSON : " + jsonMessage);
+        } catch (Exception e) {
+            System.err.println("Erreur lors de l'envoi Kafka : " + e.getMessage());
         }
     }
 
