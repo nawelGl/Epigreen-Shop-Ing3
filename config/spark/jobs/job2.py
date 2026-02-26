@@ -16,7 +16,7 @@ Usage :
     --shuffle-partitions 24 \
     --pg-host 172.31.252.28 \
     --pg-port 5432 \
-    --pg-database product_db \
+    --pg-database product-db \
     --pg-user postgres \
     --pg-password secret
 """
@@ -258,37 +258,28 @@ def main():
     jdbc_properties = {
         "user": args.pg_user,
         "password": args.pg_password,
-        "driver": "org.postgresql.Driver"
+        "driver": "org.postgresql.Driver",
+        "batchsize": "10000",
+        "isolationLevel": "READ_COMMITTED",
     }
 
     try:
-        df_to_pg = df_global.select(
-            col("id_product_ref"),
-            col("score_ec_global"),
-            col("score_label_global")
+        df_to_pg = (
+            df_global.select(
+                col("id_product_ref"),
+                col("score_ec_global"),
+                col("score_label_global")
+            )
+            .coalesce(4)   # <= ICI: limite le parallélisme DB (4 writers)
         )
-
-        jdbc_properties = {
-    "user": args.pg_user,
-    "password": args.pg_password,
-    "driver": "org.postgresql.Driver",
-    "batchsize": "2000",
-    "isolationLevel": "READ_COMMITTED"
-}
-
-        df_to_pg = df_global.select(
-            col("id_product_ref"),
-            col("score_ec_global"),
-            col("score_label_global")
-        ).repartition(10)   # <= équivalent “10 connexions” côté Spark
 
         df_to_pg.write \
             .mode("overwrite") \
             .jdbc(url=jdbc_url, table="temp_product_scores", properties=jdbc_properties)
 
         t_pg_write_end = time.perf_counter()
-        log.info("Étape 6/7 - Écriture PostgreSQL terminée | lignes=%d | connexions=10 | durée=%.1fs",
-                 unique_products, t_pg_write_end - t_pg_write_start)
+        log.info("Étape 6/7 - Écriture PostgreSQL terminée | lignes=%d | writers=%d | durée=%.1fs",
+                unique_products, 4, t_pg_write_end - t_pg_write_start)
 
     except Exception as e:
         log.error("Étape 6/7 - ÉCHEC écriture PostgreSQL | erreur=%s", str(e))
@@ -316,10 +307,10 @@ def main():
 
         update_query = """
             UPDATE ref_product_catalog r
-            SET score_ec = t.score_ec_global::varchar,
+            SET score_ec = ROUND(t.score_ec_global)::int,
                 score_label = t.score_label_global
             FROM temp_product_scores t
-            WHERE r.id_catalog_product = t.id_product_ref
+            WHERE r.id_catalog_product = t.id_product_ref;
         """
 
         cursor.execute(update_query)
