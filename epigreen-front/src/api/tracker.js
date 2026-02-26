@@ -28,7 +28,7 @@ export const trackEvent = (eventType, eventData = {}) => {
     };
 
     // envoyer à ms-event-tracker
-    axios.post(CONFIG.API.TRACKER, payload)
-        .then(() => console.log(`[Tracker] Événement ${eventType} envoyé `))
-        .catch(err => console.error(`[Tracker] Erreur :`, err));
+    axios.post(CONFIG.API.EVENTTRACKER, payload)
+        .then(() => console.log(`[EventTracker] Événement ${eventType} envoyé `))
+        .catch(err => console.error(`[EventTracker] Erreur :`, err));
 };
