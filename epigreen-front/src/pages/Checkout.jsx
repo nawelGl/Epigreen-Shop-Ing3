@@ -27,8 +27,8 @@ export default function Checkout() {
                         street: firstAddress.street,
                         city: firstAddress.city,
                         zipCode: firstAddress.zipCode,
-                        lat: firstAddress.lat || 48.8689,
-                        lon: firstAddress.lon || 2.3301
+                        lat: firstAddress.lat ?? null,
+                        lon: firstAddress.lon ?? null
                     });
                 } else {
                     // Adresse par défaut au cas où le client n'a pas d'adresse en BDD

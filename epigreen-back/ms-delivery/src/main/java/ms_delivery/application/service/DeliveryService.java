@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ms_delivery.application.dto.DeliveryCreateDTO;
+import ms_delivery.application.dto.GeoapifyResponseDTO;
+import ms_delivery.application.service.geoapify.GeoapifyService;
 import ms_delivery.domain.entity.Delivery;
 import ms_delivery.domain.entity.DeliveryMethod;
 import ms_delivery.domain.entity.DeliveryScore;
@@ -20,6 +22,8 @@ public class DeliveryService {
 
     @Autowired
     private DeliveryRepository deliveryRepository;
+    @Autowired
+    private GeoapifyService geoapifyService;
 
     public Delivery findById(Long id) {
         return deliveryRepository.findById(id).orElse(null);
@@ -124,6 +128,30 @@ public class DeliveryService {
                 .trackingNumber("TRK-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase())
                 .build();
 
+                if (newDelivery.getDestLat() == null || newDelivery.getDestLon() == null) {
+
+                if (newDelivery.getDestStreet() == null || newDelivery.getDestCity() == null
+                        || newDelivery.getDestZipCode() == null) {
+                    throw new IllegalArgumentException("Adresse de destination incomplète (street/city/zipCode requis).");
+                }
+
+                String fullAddress = String.format("%s, %s %s, France",
+                        newDelivery.getDestStreet(),
+                        newDelivery.getDestZipCode(),
+                        newDelivery.getDestCity());
+
+                String normalized = fullAddress.replaceAll("\\s+", " ").trim();
+
+                GeoapifyResponseDTO geo = geoapifyService.getCoordinatesFromAddress(normalized);
+
+                if (geo == null) {
+                    throw new IllegalStateException("Geoapify: aucune coordonnée trouvée pour: " + fullAddress);
+                }
+
+                newDelivery.setDestLat(geo.getLatitude());
+                newDelivery.setDestLon(geo.getLongitude());
+            }
+
         return deliveryRepository.save(newDelivery);
     }
 
@@ -148,31 +176,32 @@ public class DeliveryService {
     }
 
     public void updateCurrentLocation(String jsonPayload) {
-    ObjectMapper mapper = new ObjectMapper();
-    try {
-        JsonNode node = mapper.readTree(jsonPayload);
-        Long deliveryId = node.get("deliveryId").asLong();
-        Double lat = node.get("lat").asDouble();
-        Double lon = node.get("lon").asDouble();
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JsonNode node = mapper.readTree(jsonPayload);
+            Long deliveryId = node.get("deliveryId").asLong();
+            Double lat = node.get("lat").asDouble();
+            Double lon = node.get("lon").asDouble();
 
-        Delivery delivery = deliveryRepository.findById(deliveryId).orElse(null);
-        if (delivery != null) {
-            delivery.setCurrentLat(lat);
-            delivery.setCurrentLon(lon);
-            deliveryRepository.save(delivery);
+            Delivery delivery = deliveryRepository.findById(deliveryId).orElse(null);
+            if (delivery != null) {
+                delivery.setCurrentLat(lat);
+                delivery.setCurrentLon(lon);
+                deliveryRepository.save(delivery);
+            }
+
+            if (delivery.getStatus() != DeliveryStatus.DELIVERED) {
+                delivery.setStatus(DeliveryStatus.IN_TRANSIT);
+            }
+
+            Double distKm = calculateDistance(lat, lon, delivery.getDestLat(), delivery.getDestLon());
+            if (distKm != null && distKm <= 0.2) { // 200m
+                delivery.setStatus(DeliveryStatus.DELIVERED);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        if (delivery.getStatus() != DeliveryStatus.DELIVERED) {
-            delivery.setStatus(DeliveryStatus.IN_TRANSIT);
-        }
-
-        Double distKm = calculateDistance(lat, lon, delivery.getDestLat(), delivery.getDestLon());
-        if (distKm != null && distKm <= 0.03) { // 30m
-            delivery.setStatus(DeliveryStatus.DELIVERED);
-        }
-
-    } catch (Exception e) {
-        e.printStackTrace();
     }
-}
+
 }
