@@ -339,34 +339,32 @@ def main():
         sys.exit(1)
 
     # -----------------------------------------------------------------------
-    # 9) Métriques finales
+    # 9) Métriques finales (orientées performance)
     # -----------------------------------------------------------------------
     t_total = time.perf_counter() - t0
 
     log.info("=" * 60)
-    log.info("SUCCÈS")
-    log.info("Durée totale       : %.1fs", t_total)
-    log.info("Lignes lues        : %s", f"{rows_read:,}")
-    log.info("Lignes filtrées    : %d", rows_filtered)
-    log.info("Lignes HDFS        : %s", f"{rows_clean:,}")
-    log.info("Produits uniques   : %d", unique_products)
-    log.info("Produits MAJ (DB)  : %d", rows_updated)
+    log.info("SUCCÈS - RÉSUMÉ PERFORMANCE")
+    log.info("Temps total du traitement : %.1f s", t_total)
+    log.info("Temps lecture HDFS        : %.1f s", t_read_end - t_read_start)
+    log.info("Temps calcul score local  : %.1f s", t_agg1_end - t_agg1_start)
+    log.info("Temps écriture HDFS       : %.1f s", t_hdfs_end - t_hdfs_start)
+    log.info("Temps calcul score global : %.1f s", t_agg2_end - t_agg2_start)
+    log.info("Temps écriture PostgreSQL : %.1f s", t_pg_write_end - t_pg_write_start)
+    log.info("Temps update catalogue    : %.1f s", t_pg_update_end - t_pg_update_start)
     log.info("=" * 60)
 
-    # Métriques parsables pour spark-monitor
-    log.info("elapsed_read_seconds=%.2f", t_read_end - t_read_start)
-    log.info("elapsed_first_agg_seconds=%.2f", t_agg1_end - t_agg1_start)
-    log.info("elapsed_hdfs_write_seconds=%.2f", t_hdfs_end - t_hdfs_start)
-    log.info("elapsed_second_agg_seconds=%.2f", t_agg2_end - t_agg2_start)
-    log.info("elapsed_pg_write_seconds=%.2f", t_pg_write_end - t_pg_write_start)
-    log.info("elapsed_pg_update_seconds=%.2f", t_pg_update_end - t_pg_update_start)
-    log.info("elapsed_total_seconds=%.2f", t_total)
-    log.info("rows_read=%d", rows_read)
-    log.info("rows_filtered=%d", rows_filtered)
-    log.info("rows_written_hdfs=%d", rows_clean)
-    log.info("rows_written_pg=%d", unique_products)
-    log.info("rows_updated_catalog=%d", rows_updated)
-    log.info("shuffle_partitions=%d", args.shuffle_partitions)
+    # -----------------------------------------------------------------------
+    # Métriques parsables pour monitoring (Grafana / comparaison workers)
+    # -----------------------------------------------------------------------
+    log.info("metrique:temps_lecture_hdfs_secondes=%.2f", t_read_end - t_read_start)
+    log.info("metrique:temps_calcul_score_par_entrepot_secondes=%.2f", t_agg1_end - t_agg1_start)
+    log.info("metrique:temps_ecriture_hdfs_secondes=%.2f", t_hdfs_end - t_hdfs_start)
+    log.info("metrique:temps_calcul_score_global_secondes=%.2f", t_agg2_end - t_agg2_start)
+    log.info("metrique:temps_ecriture_postgresql_secondes=%.2f", t_pg_write_end - t_pg_write_start)
+    log.info("metrique:temps_update_catalogue_secondes=%.2f", t_pg_update_end - t_pg_update_start)
+    log.info("metrique:temps_total_traitement_secondes=%.2f", t_total)
+    log.info("metrique:nombre_executors=%d", spark.sparkContext.defaultParallelism)
 
     spark.stop()
 

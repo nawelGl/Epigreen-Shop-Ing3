@@ -2,83 +2,102 @@
 
 ---
 
-### Scénario 1 — Exécution nominale (cluster Spark : 3 workers)
+### Scénario 1 — Exécution nominale (1 worker)
 
 **Objectif :**  
-Montrer le fonctionnement normal du pipeline de calcul avec notification à l’administrateur.
+Mesurer la performance minimale du cluster avec un seul worker.
 
 **Déroulé :**
-- L’administrateur déclenche le **JOB 2 : calcul des scores**
-- Le `ms-service-spark-batch` soumet le job au cluster Spark (3 workers)
+- Déclenchement du **JOB 2 : calcul des scores**
+- Cluster Spark configuré avec **1 worker**
 - Spark :
-  - lit les données Parquet depuis HDFS (zone curated)
-  - calcule l’empreinte carbone totale par ligne
-  - calcule la moyenne par `id_product_ref`
-  - attribue un score environnemental (A → E)
+  - lit les données depuis HDFS
+  - calcule les scores environnementaux
+  - écrit les résultats dans PostgreSQL
 - Fin du job :
-  - publication d’un message dans Kafka (`topic_success`)
-  - la notification est consommée et **remontée à l’IHM admin**
+  - statut `SUCCESS`
+  - métriques disponibles dans Grafana
 
 **Éléments montrés en démonstration :**
-- Spark UI avec 3 workers actifs
-- Temps d’exécution du job
-- Message de succès dans Kafka
-- Notification visible côté administrateur
-- Données finales disponibles
+- Spark UI avec 1 worker actif
+- Temps total d’exécution
+- Métrique `job2_duration_seconds`
+- Statut SUCCESS
 
 ---
 
-### Scénario 2 — Comparaison de performances (3 workers vs 6 workers)
+### Scénario 2 — Exécution nominale (3 workers)
 
 **Objectif :**  
-Démontrer l’impact du parallélisme Spark sur le temps d’exécution.
+Comparer les performances avec un parallélisme intermédiaire.
 
 **Déroulé :**
 - Relance du **même JOB 2**
-- Cluster Spark configuré avec **6 workers**
-- Données et logique métier identiques au scénario 1
-- Fin du job :
-  - publication d’un message dans Kafka (`topic_success`)
-  - la notification est **remontée à l’IHM admin**
+- Cluster configuré avec **3 workers**
+- Données et logique identiques au scénario 1
 
-**Éléments montrés en démonstration :**
-- Spark UI avec 6 workers actifs
+**Éléments montrés :**
+- Spark UI avec 3 workers actifs
 - Temps d’exécution réduit
-- Comparaison des temps :
-  - 3 workers vs 6 workers
-- Notification de succès côté administrateur
+- Comparaison avec scénario 1
+- Statut SUCCESS
 
 ---
 
-### Scénario 3 — Gestion d’erreur et notification
+### Scénario 3 — Exécution nominale (6 workers)
 
 **Objectif :**  
-Montrer la capacité du système à gérer un échec et à notifier l’administrateur.
+Analyser le gain supplémentaire avec un cluster plus large.
 
 **Déroulé :**
-- L’administrateur déclenche le **JOB 2**
+- Relance du **JOB 2**
+- Cluster configuré avec **6 workers**
+
+**Éléments montrés :**
+- Spark UI avec 6 workers actifs
+- Temps d’exécution
+- Comparaison :
+  - 1 worker
+  - 3 workers
+  - 6 workers
+
+**Analyse attendue :**
+- Identifier le meilleur compromis performance / ressources
+- Observer un éventuel rendement décroissant
+
+---
+
+### Scénario 4 — Tolérance aux pannes (Fault Tolerance)
+
+**Objectif :**  
+Démontrer la résilience native de Spark.
+
+**Déroulé :**
+- Lancement du **JOB 2** avec **3 workers**
 - Pendant l’exécution :
-  - arrêt volontaire du Spark Master **ou**
-  - arrêt d’un worker Spark
-- Le job échoue
+  - arrêt volontaire d’un worker (`./stop-worker.sh`)
+- Observation dans Spark UI :
+  - worker passe en `DEAD`
+  - tâches redistribuées automatiquement
+- Le job se termine avec succès
 
 **Comportement attendu :**
-- Le `ms-service-spark-batch` détecte l’échec du job
-- Envoi d’un message dans Kafka (`topic_failure`)
-- L’administrateur est informé de l’échec
-- Possibilité de relancer le calcul
+- Pas d’arrêt global du job
+- Réallocation automatique des tâches
+- Statut final `SUCCESS`
 
 **Éléments montrés en démonstration :**
-- Job en échec visible dans Spark UI
-- Message d’erreur dans Kafka
-- Notification d’échec côté administration
+- Worker en `DEAD` dans Spark UI
+- Job qui continue
+- Job terminé avec succès malgré la perte d’un worker
 
 ---
 
 ### Résumé des scénarios
 
 | Scénario | Objectif principal |
-|--------|-------------------|
-| Scénario 1 | Pipeline fonctionnel avec 3 workers |
-| Scénario 2 | Comparaison de performance avec 6 workers |
-| Scénario 3 | Gestion des erreurs et notifications |
+|----------|-------------------|
+| Scénario 1 | Baseline performance (1 worker) |
+| Scénario 2 | Scalabilité avec 3 workers |
+| Scénario 3 | Analyse du gain avec 6 workers |
+| Scénario 4 | Tolérance aux pannes Spark |
