@@ -15,6 +15,8 @@ import ms_delivery.domain.entity.DeliveryStatus;
 import ms_delivery.domain.repository.DeliveryRepository;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class DeliveryService {
@@ -25,6 +27,8 @@ public class DeliveryService {
     private GeoapifyService geoapifyService;
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
+
+    private static final Logger log = LoggerFactory.getLogger(DeliveryService.class);
 
     public Delivery findById(Long id) {
         return deliveryRepository.findById(id).orElse(null);
@@ -50,14 +54,17 @@ public class DeliveryService {
         Double distance = calculateDistance(delivery.getOriginLat(), delivery.getOriginLon(),
                 delivery.getDestLat(), delivery.getDestLon());
         delivery.setCalculatedDistance(distance);
+        log.info("Distance calculée : " + distance + " km.");
 
         // 2. Calcul du CO2
         double factor = (delivery.getDeliveryMethod() == DeliveryMethod.POINT_RELAIS) ? 0.08 : 0.15;
         Double co2 = Math.round((distance * factor) * 100.0) / 100.0;
         delivery.setCarbonFootprint(co2);
+        log.info("CO2 calculé : " + co2 + " kg.");
 
         // 3. Attribution du Score
         delivery.setDeliveryScore(calculateScore(co2));
+        log.info("Score de livraison calculé : " + calculateScore(co2) + ".");
 
         return deliveryRepository.save(delivery);
     }
@@ -153,6 +160,8 @@ public class DeliveryService {
                 newDelivery.setDestLon(geo.getLongitude());
             }
 
+            log.info("Livraison " + newDelivery.getTrackingNumber() + " créée et enregistrée en base de données !");
+
         return deliveryRepository.save(newDelivery);
     }
 
@@ -160,34 +169,6 @@ public class DeliveryService {
         return deliveryRepository.findByCustomerId(customerId);
     }
 
-    // public void updateCurrentLocation(String jsonPayload) {
-    //     ObjectMapper mapper = new ObjectMapper();
-    //     try {
-    //         JsonNode node = mapper.readTree(jsonPayload);
-    //         Long deliveryId = node.get("deliveryId").asLong();
-    //         Double lat = node.get("lat").asDouble();
-    //         Double lon = node.get("lon").asDouble();
-
-    //         Delivery delivery = deliveryRepository.findById(deliveryId).orElse(null);
-    //         if (delivery != null) {
-    //             delivery.setCurrentLat(lat);
-    //             delivery.setCurrentLon(lon);
-    //             deliveryRepository.save(delivery);
-    //         }
-
-    //         if (delivery.getStatus() != DeliveryStatus.DELIVERED) {
-    //             delivery.setStatus(DeliveryStatus.IN_TRANSIT);
-    //         }
-
-    //         Double distKm = calculateDistance(lat, lon, delivery.getDestLat(), delivery.getDestLon());
-    //         if (distKm != null && distKm <= 0.2) { // 200m
-    //             delivery.setStatus(DeliveryStatus.DELIVERED);
-    //         }
-
-    //     } catch (Exception e) {
-    //         e.printStackTrace();
-    //     }
-    // }
 
     public Delivery updateStatus(Long id, DeliveryStatus status) {
         Delivery delivery = deliveryRepository.findById(id).orElse(null);
@@ -197,6 +178,7 @@ public class DeliveryService {
 
             // Déclenchement Kafka si le statut passe manuellement à DELIVERED
             if (status == DeliveryStatus.DELIVERED) {
+                log.info("La livraison " + delivery.getTrackingNumber() + " est passée en statut DELIVERED. Événement produit dans Kafka (topic : order-notifications) !");
                 sendNotification(savedDelivery);
             }
 
@@ -257,9 +239,7 @@ public class DeliveryService {
                     delivery.getTrackingNumber() != null ? delivery.getTrackingNumber() : "INCONNU");
 
             kafkaTemplate.send("order-notifications", jsonMessage).get();
-            System.out.println("KAFKA] Notification envoyée pour la livraison " + delivery.getId()
-                    + " à l'email forcé : " + targetEmail);
-            System.out.println("MESSAGE JSON : " + jsonMessage);
+            log.info("Message JSON produit dans Kafka : " + jsonMessage);
         } catch (Exception e) {
             System.err.println("Erreur lors de l'envoi Kafka : " + e.getMessage());
         }

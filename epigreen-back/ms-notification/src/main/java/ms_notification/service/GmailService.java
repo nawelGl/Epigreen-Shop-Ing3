@@ -24,6 +24,8 @@ import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.Properties;
 import java.util.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class GmailService {
@@ -31,6 +33,7 @@ public class GmailService {
     private static final String APPLICATION_NAME = "ms-notification";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
+    private static final Logger log = LoggerFactory.getLogger(GmailService.class);
 
     // Définit qu'on veut le droit d'envoyer des mails
     private static final java.util.List<String> SCOPES = Collections.singletonList(GmailScopes.GMAIL_SEND);
@@ -39,7 +42,6 @@ public class GmailService {
      * Méthode d'authentification OAuth 2.0 (Ouvre le navigateur)
      */
     private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws Exception {
-        // Charge le fichier credentials.json depuis resources
         InputStream in = GmailService.class.getResourceAsStream("/credentials.json");
         if (in == null) {
             throw new RuntimeException("Fichier credentials.json introuvable !");
@@ -96,7 +98,7 @@ public class GmailService {
             message.setRaw(encodedEmail);
 
             service.users().messages().send("me", message).execute();
-            System.out.println("Email envoyé via OAuth2 avec succès à : " + notification.getCustomerEmail());
+            log.info("Email envoyé via OAuth2 avec succès à : " + notification.getCustomerEmail());
 
         } catch (Exception e) {
             System.err.println("Erreur OAuth2/Gmail : " + e.getMessage());

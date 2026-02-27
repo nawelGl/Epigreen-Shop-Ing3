@@ -13,25 +13,26 @@ services:
       - ./epigreen-back/ms-telemetry/mosquitto/data:/mosquitto/data
       - ./epigreen-back/ms-telemetry/mosquitto/log:/mosquitto/log
 
-  # Zookeeper
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.3
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+  ms-delivery:
+    build: ./ms-delivery
+    container_name: ms-delivery
     ports:
-      - "2181:2181"
+      - "8087:8087"
+    restart: unless-stopped
+    # Injection de la clé Geoapify
+    env_file:
+      - .env
 
-  # Apache Kafka
-  kafka:
-    image: confluentinc/cp-kafka:7.5.3
-    depends_on:
-      - zookeeper
+  ms-telemetry:
+    build: ./ms-telemetry
+    container_name: ms-telemetry
     ports:
-      - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      - "8088:8088"
+    restart: unless-stopped
+    env_file:
+      - .env
+
+  ms-notification:
+    build: ./ms-notification
+    container_name: ms-notification
+    restart: unless-stopped

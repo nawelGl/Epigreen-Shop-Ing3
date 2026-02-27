@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Secrets
+.env
+ms-notification/src/main/resources/credentials.json
+ms-notification/tokens/
