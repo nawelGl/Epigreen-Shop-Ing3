@@ -1,13 +1,10 @@
-package ms_membership.infrastructure.web.controller;
+package ms_membership.web.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import ms_membership.application.dto.CustomerRequestDTO;
 import ms_membership.application.dto.CustomerResponseDTO;
 import ms_membership.application.service.CustomerService;
-
-import java.util.Map;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -17,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/customers")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class CustomerController {
 
@@ -67,19 +63,5 @@ public class CustomerController {
     public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
         service.deleteCustomer(id);
         return ResponseEntity.noContent().build();
-    }
-
-
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
-        try {
-            String email = credentials.get("email");
-            String password = credentials.get("password");
-            
-            CustomerResponseDTO customer = service.login(email, password);
-            return ResponseEntity.ok(customer);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        }
     }
 }
