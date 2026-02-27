@@ -1,35 +1,35 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState } from 'react';
+import Login from './pages/Login';
+import Home from './pages/Home';
+import ProductDetail from './pages/ProductDetail';
+import Cart from './pages/Cart';
+import './index.css';
+import Checkout from './pages/Checkout';
+import Tracker from './pages/Tracker';
+import Orders from './pages/Orders';
+import "leaflet/dist/leaflet.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+    // État d'authentification avec userId
+    const [isAuth, setIsAuth] = useState(!!localStorage.getItem('epigreen_user_id'));
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    return (
+
+
+        <Router>
+            <Routes>
+                {/* Passage de la fonction pour mettre à jour l'état après login */}
+                <Route path="/login" element={<Login onLoginSuccess={() => setIsAuth(true)} />} />
+                {/* Redirection automatique selon isAuth */}
+                <Route path="/" element={isAuth ? <Home /> : <Navigate to="/login" replace />} />
+                {/* Navigation vers la page de détail des products (selon Id) */}
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/products/:id" element={isAuth ? <ProductDetail /> : <Navigate to="/login" replace />} />
+                <Route path="/checkout" element={isAuth ? <Checkout /> : <Navigate to="/login" replace />} />
+                <Route path="/tracker/:id" element={isAuth ? <Tracker /> : <Navigate to="/login" replace />} />
+                <Route path="/orders" element={isAuth ? <Orders /> : <Navigate to="/login" replace />} />
+            </Routes>
+        </Router>
+    );
 }
-
-export default App

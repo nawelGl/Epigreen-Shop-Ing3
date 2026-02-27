@@ -43,8 +43,5 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# --- Tests API (On garde les collections Bruno, mais pas les secrets) ---
-# Si tu utilises le format .bru, c'est bon.
-# Si tu as des fichiers de variables d'environnement Bruno avec des secrets :
 .bruno/
 *.env.bru

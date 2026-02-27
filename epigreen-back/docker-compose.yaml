@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  ms-membership:
+    build: 
+      context: ./ms-membership 
+    ports:
+      - "8081:8081"
+    networks:
+      - epigreen-network
+
+  ms-product:
+    build: 
+      context: ./ms-product
+    ports:
+      - "8082:8082"
+    networks:
+      - epigreen-network
+
+  ms-cart:
+    build: 
+      context: ./ms-cart
+    ports:
+      - "8083:8083"
+    environment:
+      - MS_PRODUCT_URL=http://ms-product:8082
+    networks:
+      - epigreen-network
+    depends_on:
+      - ms-product
+
+  ms-order:
+    build: 
+      context: ./ms-order
+    ports:
+      - "8084:8084"
+    environment:
+      - MS_PRODUCT_URL=http://ms-product:8081
+      - MS_CART_URL=http://ms-cart:8082
+    networks:
+      - epigreen-network
+    depends_on:
+      - ms-cart
+
+networks:
+  epigreen-network:
+    driver: bridge

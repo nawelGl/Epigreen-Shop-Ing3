@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  # Broker MQTT (Mosquitto)
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./epigreen-back/ms-telemetry/mosquitto/config:/mosquitto/configs
+      - ./epigreen-back/ms-telemetry/mosquitto/data:/mosquitto/data
+      - ./epigreen-back/ms-telemetry/mosquitto/log:/mosquitto/log
+
+  ms-delivery:
+      build: ./epigreen-back/ms-delivery
+      container_name: ms-delivery
+      ports:
+        - "8087:8087"
+      restart: unless-stopped
+      # Injection de la clé Geoapify
+      env_file:
+        - .env
+
+  ms-telemetry:
+    build: ./epigreen-back/ms-telemetry
+    container_name: ms-telemetry
+    ports:
+      - "8088:8088"
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - mosquitto
+ 
+  
