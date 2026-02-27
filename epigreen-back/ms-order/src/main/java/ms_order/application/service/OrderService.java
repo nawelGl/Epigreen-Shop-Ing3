@@ -9,12 +9,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-
 import jakarta.persistence.EntityNotFoundException;
-
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -22,6 +24,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
     private final RestTemplate restTemplate = new RestTemplate();
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
 
     @Value("${cart.service.url}")
     private String cartServiceUrl;
@@ -58,12 +61,13 @@ public class OrderService {
 
         order.setTotalPrice(totalPrice);
         Order savedOrder = orderRepository.save(order);
+        log.info("Commande créée pour un montant total de " + order.getTotalPrice() + "€.");
         try {
             String deleteUrl = cartServiceUrl + "/api/cart/" + request.getCustomerId();
             
             // la suppression
             restTemplate.delete(deleteUrl); 
-            System.out.println("Panier vidé avec succès pour l'ID: " + request.getCustomerId());
+            log.info("Panier vidé avec succès pour l'ID: " + request.getCustomerId());
             
         } catch (Exception e) {
             System.err.println("Erreur lors du vidage du panier: " + e.getMessage());
@@ -78,6 +82,4 @@ public class OrderService {
                 .map(orderMapper::toDto)
                 .orElseThrow(() -> new EntityNotFoundException("Commande introuvable avec l'ID : " + id));
     }
-
-
 }
