@@ -2,6 +2,8 @@ package ms_telemetry.consumer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -14,6 +16,8 @@ public class TelemetryConsumer {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper mapper = new ObjectMapper();
     private static final Logger log = LoggerFactory.getLogger(TelemetryConsumer.class);
+    @Value("${api.delivery.url:http://localhost:8087/api/delivery}")
+    private String deliveryApiUrl;
 
     @KafkaListener(topics = "gps-data-raw", groupId = "telemetry-group")
     public void consume(String message) {
@@ -24,7 +28,7 @@ public class TelemetryConsumer {
             double lat = node.get("lat").asDouble();
             double lon = node.get("lon").asDouble();
 
-            String url = "http://localhost:8087/api/delivery/" + deliveryId + "/location?lat=" + lat + "&lon=" + lon;
+            String url = deliveryApiUrl + "/" + deliveryId + "/location?lat=" + lat + "&lon=" + lon;
             restTemplate.put(url, null);
 
             //System.out.println("Update envoyée à ms-delivery : " + deliveryId + " -> " + lat + "," + lon);

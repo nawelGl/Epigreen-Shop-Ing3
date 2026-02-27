@@ -42,12 +42,15 @@ public class GmailService {
      * Méthode d'authentification OAuth 2.0 (Ouvre le navigateur)
      */
     private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws Exception {
-        InputStream in = GmailService.class.getResourceAsStream("/credentials.json");
+        InputStream in = getClass().getClassLoader().getResourceAsStream("credentials.json");
+
         if (in == null) {
-            throw new RuntimeException("Fichier credentials.json introuvable !");
+            throw new RuntimeException("Fichier credentials.json introuvable dans le dossier resources !");
         }
 
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(
+                GsonFactory.getDefaultInstance(),
+                new InputStreamReader(in));
 
         // Configure le flux d'autorisation
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(

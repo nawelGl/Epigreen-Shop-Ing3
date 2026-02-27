@@ -14,25 +14,24 @@ services:
       - ./epigreen-back/ms-telemetry/mosquitto/log:/mosquitto/log
 
   ms-delivery:
-    build: ./ms-delivery
-    container_name: ms-delivery
-    ports:
-      - "8087:8087"
-    restart: unless-stopped
-    # Injection de la clé Geoapify
-    env_file:
-      - .env
+      build: ./epigreen-back/ms-delivery
+      container_name: ms-delivery
+      ports:
+        - "8087:8087"
+      restart: unless-stopped
+      # Injection de la clé Geoapify
+      env_file:
+        - .env
 
   ms-telemetry:
-    build: ./ms-telemetry
+    build: ./epigreen-back/ms-telemetry
     container_name: ms-telemetry
     ports:
       - "8088:8088"
     restart: unless-stopped
     env_file:
       - .env
-
-  ms-notification:
-    build: ./ms-notification
-    container_name: ms-notification
-    restart: unless-stopped
+    depends_on:
+      - mosquitto
+ 
+  

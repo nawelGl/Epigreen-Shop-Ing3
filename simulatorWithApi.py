@@ -4,11 +4,11 @@ import requests
 import sys
 import paho.mqtt.client as mqtt
 
-BROKER = "localhost"
+BROKER = "172.31.252.234"
 PORT = 1883
 TOPIC = "delivery/location"
 
-DELIVERY_API = "http://localhost:8087/api/delivery"
+DELIVERY_API = "http://172.31.252.74:8087/api/delivery"
 
 STEP_EVERY_N_POINTS = 5
 SLEEP_SECONDS = 1
@@ -93,7 +93,7 @@ def main(delivery_id):
     client.connect(BROKER, PORT, 60)
 
     for i in range(0, len(coords), STEP_EVERY_N_POINTS):
-        lon, lat = coords[i]
+        lat, lon = coords[i]
 
         payload = {
             "deliveryId": delivery_id,
@@ -112,7 +112,7 @@ def main(delivery_id):
     print("Simulation terminée, passage en DELIVERED...")
 
     requests.patch(
-        f"http://localhost:8087/api/delivery/{delivery_id}/status",
+        f"http://172.31.252.74:8087/api/delivery/{delivery_id}/status",
         params={"status": "DELIVERED"}
     )
 

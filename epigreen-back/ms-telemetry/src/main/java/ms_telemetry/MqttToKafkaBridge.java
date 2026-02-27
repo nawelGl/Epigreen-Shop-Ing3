@@ -5,6 +5,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -22,9 +23,11 @@ public class MqttToKafkaBridge {
         private static final Logger log = LoggerFactory.getLogger(MqttToKafkaBridge.class);
 
 
-    public MqttToKafkaBridge() throws MqttException {
-        String publisherId = UUID.randomUUID().toString();
-        IMqttClient client = new MqttClient("tcp://localhost:1883", publisherId);
+        public MqttToKafkaBridge(@Value("${mqtt.broker.url:tcp://localhost:1883}") String brokerUrl)
+                throws MqttException {
+            String publisherId = UUID.randomUUID().toString();
+        
+        IMqttClient client = new MqttClient(brokerUrl, publisherId);
 
         MqttConnectOptions options = new MqttConnectOptions();
         options.setAutomaticReconnect(true);
