@@ -8,6 +8,7 @@ import './index.css';
 import Checkout from './pages/Checkout';
 import Tracker from './pages/Tracker';
 import Orders from './pages/Orders';
+import "leaflet/dist/leaflet.css";
 
 export default function App() {
     // État d'authentification avec userId

@@ -37,7 +37,7 @@ export default function Cart() {
     // 2. Vider le panier
     const handleClearCart = () => {
         if (window.confirm("Veux-tu vraiment vider ton panier ?")) {
-            axios.delete(`${CONFIG.API.CART}/${userName}`)
+            axios.delete(`${CONFIG.API.CART}/${userId}`)
                 .then(() => {
                     setCart(null); // On vide l'affichage
                 })

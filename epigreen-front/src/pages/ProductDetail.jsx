@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Header from '../components/Header';
 import { CONFIG } from '../api/config';
+import { trackEvent } from '../api/tracker';
 
 export default function ProductDetail() {
     const { id } = useParams();
@@ -12,25 +13,38 @@ export default function ProductDetail() {
     const [quantity, setQuantity] = useState(1);
     const [isAdding, setIsAdding] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
+    const [selectedSize, setSelectedSize] = useState("");
 
     const userName = localStorage.getItem('epigreen_user_name');
     const userId = localStorage.getItem('epigreen_user_id');
 
+
     // 1. Récupération des détails du produit
     useEffect(() => {
         axios.get(`${CONFIG.API.PRODUCT}/${id}`)
-            .then(res => setProduct(res.data))
+            .then(res => {
+                setProduct(res.data);
+                // Tracer le click de product
+                trackEvent("CLICK", { productId: parseInt(id) });
+                console.log("Click event est tracé, product :", id);
+            })
             .catch(err => console.error("Erreur lors du chargement du produit:", err));
     }, [id]);
 
     // 2. Logique d'ajout au panier 
     const handleAddToCart = () => {
+        if (!selectedSize) {
+            alert("Veuillez sélectionner une taille !");
+            return;
+        }
+        
         setIsAdding(true);
         setSuccessMessage("");
 
         const payload = {
             productId: parseInt(id),
-            quantity: quantity
+            quantity: quantity,
+            size: selectedSize
         };
 
         // Appel POST 
@@ -39,7 +53,9 @@ export default function ProductDetail() {
                 console.log("Panier mis à jour :", res.data);
                 setIsAdding(false);
                 setSuccessMessage("Produit ajouté au panier avec succès ! ");
-                
+
+                //Tracer l'ajout de cart
+                trackEvent("CART", { productId: parseInt(id), quantity: quantity });
                 // Fait disparaître le message après 3 secondes
                 setTimeout(() => setSuccessMessage(""), 3000);
             })
@@ -59,6 +75,9 @@ export default function ProductDetail() {
             </div>
         </div>
     );
+
+    const availableSizes = product.sizes ? product.sizes.split(',') : ['Unique'];
+
 
     return (
         <div>
@@ -93,8 +112,31 @@ export default function ProductDetail() {
                         <p><strong>Couleur :</strong> {product.color || 'Non spécifiée'}</p>
                         <p><strong>Tailles disponibles :</strong> {product.sizes || 'Taille unique'}</p>
 
-                        {/* TODO: implémenter la score EC=> icon de l'année dernière ? */}
-                        {product.scoreEc && <p><strong>Score Écologique :</strong> {product.scoreEc} 🍃</p>}
+                        {product.scoreEc && <p><strong>Score Écologique :</strong> {product.scoreLabel} 🍃</p>}
+                    </div>
+
+                    {/* Sélecteur de size --- */}
+                    <div style={{ marginBottom: '25px' }}>
+                        <p style={{ fontWeight: 'bold' }}>Sélectionner une taille :</p>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            {availableSizes.map(size => (
+                                <button
+                                    key={size}
+                                    onClick={() => setSelectedSize(size.trim())}
+                                    style={{
+                                        padding: '10px 20px',
+                                        border: selectedSize === size.trim() ? '2px solid green' : '1px solid #ccc',
+                                        backgroundColor: selectedSize === size.trim() ? '#e6fffa' : 'white',
+                                        borderRadius: '5px',
+                                        cursor: 'pointer',
+                                        color:'black',
+                                        fontWeight: selectedSize === size.trim() ? 'bold' : 'normal'
+                                    }}
+                                >
+                                    {size.trim()}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                     
                     {/* Sélecteur de quantité */}

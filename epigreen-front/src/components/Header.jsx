@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { CONFIG } from '../api/config';
+import { trackEvent } from '../api/tracker';
+
 
 export default function Header({ userName, onSearch }) {
     // État local pour stocker le texte de recherche
@@ -22,6 +24,7 @@ export default function Header({ userName, onSearch }) {
     // Déclencher la recherche au clic du bouton
     const handleSearchClick = () => {
         if (onSearch) onSearch(searchInput);
+        trackEvent('SEARCH', { keyword: searchInput });
     };
 
     // Déclencher la recherche avec la touche "Entrée"

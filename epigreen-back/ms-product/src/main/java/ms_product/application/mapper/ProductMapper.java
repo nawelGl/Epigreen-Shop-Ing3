@@ -27,6 +27,7 @@ public class ProductMapper {
                 .subCategory(dto.getSubCategory())
                 .articleType(dto.getArticleType())
                 .scoreEc(dto.getScoreEc() != null ? dto.getScoreEc() : 0)
+                .scoreLabel(dto.getScoreLabel())
                 .price(dto.getPrice())
                 .build();
     }
@@ -51,6 +52,7 @@ public class ProductMapper {
                 .subCategory(product.getSubCategory())
                 .articleType(product.getArticleType())
                 .scoreEc(product.getScoreEc())
+                .scoreLabel(product.getScoreLabel())
                 .price(product.getPrice())
                 .build();
     }
@@ -75,6 +77,7 @@ public class ProductMapper {
         if (dto.getScoreEc() != null) {
             product.setScoreEc(dto.getScoreEc());
         }
+        product.setScoreLabel(dto.getScoreLabel());
         product.setPrice(dto.getPrice());
     }
 }

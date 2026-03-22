@@ -2,16 +2,19 @@ package ms_delivery.application.service.geoapify;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import ms_delivery.application.dto.GeoapifyResponseDTO;
-
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.http.HttpHeaders;
 
 @Service
 public class GeoapifyService {
@@ -64,22 +67,45 @@ public class GeoapifyService {
      */
     public GeoapifyResponseDTO getCoordinatesFromAddress(String address) {
         try {
-            String url = UriComponentsBuilder.fromHttpUrl("https://api.geoapify.com/v1/geocode/search")
+            URI uri = UriComponentsBuilder
+                    .fromHttpUrl("https://api.geoapify.com/v1/geocode/search")
                     .queryParam("text", address)
+                    .queryParam("format", "json")
+                    .queryParam("limit", 1)
+                    .queryParam("filter", "countrycode:fr")
                     .queryParam("apiKey", apiKey)
-                    .toUriString();
+                    .build()
+                    .encode()
+                    .toUri();
 
-            String response = restTemplate.getForObject(url, String.class);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("User-Agent", "Epigreen-ms-delivery/1.0");
+            headers.set("Accept", "application/json");
+
+            ResponseEntity<String> responseEntity =
+                    restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+
+            String response = responseEntity.getBody();
+            System.out.println("Geoapify raw response = " + response);
+
             JsonNode root = objectMapper.readTree(response);
-            JsonNode features = root.path("features");
+            JsonNode results = root.path("results");
 
-            if (features.isArray() && features.size() > 0) {
-                JsonNode properties = features.get(0).path("properties");
-                return objectMapper.treeToValue(properties, GeoapifyResponseDTO.class);
+            if (results.isArray() && results.size() > 0) {
+                JsonNode r = results.get(0);
+
+                GeoapifyResponseDTO dto = new GeoapifyResponseDTO();
+                dto.setLatitude(r.path("lat").asDouble());
+                dto.setLongitude(r.path("lon").asDouble());
+                dto.setFormattedAddress(r.path("formatted").asText(null));
+                dto.setCountry(r.path("country").asText(null));
+                return dto;
             }
+
+            throw new RuntimeException("Aucune coordonnée trouvée pour : " + address);
+
         } catch (Exception e) {
-            System.err.println("Erreur Geoapify Geocoding : " + e.getMessage());
+            throw new RuntimeException("Erreur Geoapify : " + e.getMessage(), e);
         }
-        return null;
     }
 }
