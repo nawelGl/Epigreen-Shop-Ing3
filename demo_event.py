@@ -1,8 +1,10 @@
 import csv
 import random
+import uuid
+from datetime import datetime
 from locust import HttpUser, task, between
 
-# --- 1. Load Data ---
+# --- 1. Data Loading ---
 TEST_USERS = []
 try:
     with open("customers.csv", "r", encoding="utf-8") as f:
@@ -15,39 +17,69 @@ except Exception as e:
 
 class EpigreenShopper(HttpUser):
     wait_time = between(1, 3)
-    host = "http://172.31.250.47:3000"
+    
+    # Base Host set to Event Tracker VM
+    host = "http://172.31.250.47:4000"
 
     def on_start(self):
         self.token = ""
+        self.user_id = ""
+        
         if len(TEST_USERS) > 0:
             user = TEST_USERS.pop(0)
+            # URL from CONFIG.API.CUSTOMER (assuming login is under this base)
             auth_url = "http://172.31.252.28:8081/api/auth/login"
             
-            print(f"AUTH: Login start for {user.get('email')}")
+            auth_payload = {
+                "email": user["email"], 
+                "id": user["password_hash"] 
+            }
+            
             try:
-                payload = {"email": user["email"], "password": user["password_hash"]}
-                res = self.client.post(auth_url, json=payload)
+                res = self.client.post(auth_url, json=auth_payload, name="Login")
                 if res.status_code == 200:
-                    self.token = res.json().get("token")
-                    print(f"AUTH: Success for {user.get('email')}")
+                    data = res.json()
+                    self.token = data.get("token")
+                    self.user_id = data.get("id")
+                    print(f"AUTH: SUCCESS for {user.get('email')}")
                 else:
-                    print(f"AUTH: Failed for {user.get('email')} - Status {res.status_code}")
-            except Exception as e:
-                print(f"AUTH: Error connecting to auth server")
+                    print(f"AUTH: FAILED for {user.get('email')} - Status {res.status_code}")
+            except Exception:
+                print(f"AUTH: CONNECTION ERROR to 8081")
 
     @task(3)
     def click_product(self):
-        url = "http://172.31.250.47:3000/api/events"
-        data = {"type": "CLICK", "productId": random.randint(1, 100)}
-        self.client.post(url, json=data, name="CLICK")
+        # Path from CONFIG.API.EVENTTRACKER
+        url = "/api/track/events"
+        
+        payload = {
+            "eventId": str(uuid.uuid4()),
+            "eventType": "CLICK",
+            "userId": self.user_id,
+            "eventData": {
+                "productId": random.randint(1, 100)
+            },
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "metadata": { "device": "web" }
+        }
+        self.client.post(url, json=payload, name="Event_CLICK")
 
     @task(1)
     def add_to_cart(self):
-        url = "http://172.31.250.47:3000/api/events"
+        # Path from CONFIG.API.EVENTTRACKER
+        url = "/api/track/events"
         headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
-        data = {
-            "type": "CART",
-            "productId": random.randint(1, 100),
-            "quantity": 1
+        
+        payload = {
+            "eventId": str(uuid.uuid4()),
+            "eventType": "CART",
+            "userId": self.user_id,
+            "eventData": {
+                "productId": random.randint(1, 100),
+                "quantity": 1,
+                "size": random.choice(["S", "M", "L", "XL"])
+            },
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "metadata": { "device": "web" }
         }
-        self.client.post(url, json=data, headers=headers, name="CART")
+        self.client.post(url, json=payload, headers=headers, name="Event_CART")
