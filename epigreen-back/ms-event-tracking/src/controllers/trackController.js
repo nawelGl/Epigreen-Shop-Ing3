@@ -13,7 +13,10 @@ exports.receiveEvent = async (req, res) => {
         // Envoi asynchrone à Kafka
         sendEvent(eventData);
         // incrémenter le compteur 
-        trackCounter.labels(eventData.eventType).inc();
+        ttrackCounter.labels({
+            event_type: eventData.eventType,
+            userId: eventData.userId
+        }).inc();
 
         // Réponse immédiate au client 
         res.status(200).json({ message: "Événement tracké avec succès" });
