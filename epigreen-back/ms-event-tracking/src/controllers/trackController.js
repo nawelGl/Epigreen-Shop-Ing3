@@ -18,7 +18,6 @@ exports.receiveEvent = async (req, res) => {
         // Réponse immédiate au client 
         res.status(200).json({ message: "Événement tracké avec succès" });
 
-        trackCounter.labels(eventData.eventType).inc();
 
     } catch (error) {
         console.error(" Erreur dans le contrôleur de tracking:", error);
