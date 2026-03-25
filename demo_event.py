@@ -22,30 +22,12 @@ class EpigreenShopper(HttpUser):
     host = "http://172.31.250.47:4000"
 
     def on_start(self):
-        self.token = ""
         self.user_id = ""
         
         if len(TEST_USERS) > 0:
             user = TEST_USERS.pop(0)
-            # URL from CONFIG.API.CUSTOMER (assuming login is under this base)
-            auth_url = "http://172.31.252.28:8081/api/auth/login"
-            
-            auth_payload = {
-                "email": user["email"], 
-                "id": user["password_hash"] 
-            }
-            
-            try:
-                res = self.client.post(auth_url, json=auth_payload, name="Login")
-                if res.status_code == 200:
-                    data = res.json()
-                    self.token = data.get("token")
-                    self.user_id = data.get("id")
-                    print(f"AUTH: SUCCESS for {user.get('email')}")
-                else:
-                    print(f"AUTH: FAILED for {user.get('email')} - Status {res.status_code}")
-            except Exception:
-                print(f"AUTH: CONNECTION ERROR to 8081")
+            self.user_id = user["id"]
+            print(f"USER ASSIGNED: {self.user_id}")
 
     @task(3)
     def click_product(self):
@@ -64,11 +46,29 @@ class EpigreenShopper(HttpUser):
         }
         self.client.post(url, json=payload, name="Event_CLICK")
 
+
+    @task(2)
+    def search_product(self):
+        url = "/api/track/events"
+        search_keywords = ["T-shirt", "Nike", "Adidas", "Jean", "Skirt"]
+        
+        payload = {
+            "eventId": str(uuid.uuid4()),
+            "eventType": "SEARCH",
+            "userId": self.user_id,
+            "eventData": {
+                "keyword": random.choice(search_keywords),
+                "category": "All"
+            },
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "metadata": {"device": "web"}
+        }
+        self.client.post(url, json=payload, name="Event_SEARCH")
+
     @task(1)
     def add_to_cart(self):
         # Path from CONFIG.API.EVENTTRACKER
         url = "/api/track/events"
-        headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
         
         payload = {
             "eventId": str(uuid.uuid4()),
@@ -82,4 +82,4 @@ class EpigreenShopper(HttpUser):
             "ts": datetime.utcnow().isoformat() + "Z",
             "metadata": { "device": "web" }
         }
-        self.client.post(url, json=payload, headers=headers, name="Event_CART")
+        self.client.post(url, json=payload, name="Event_CART")
