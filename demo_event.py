@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from locust import HttpUser, task, between
 
-# --- 1. Data Loading ---
+# Data Load ==> données customers (id)
 TEST_USERS = []
 try:
     with open("customers.csv", "r", encoding="utf-8") as f:
@@ -18,7 +18,7 @@ except Exception as e:
 class EpigreenShopper(HttpUser):
     wait_time = between(1, 3)
     
-    # Base Host set to Event Tracker VM
+    # Base Host Tracker VM
     host = "http://172.31.250.47:4000"
 
     def on_start(self):
