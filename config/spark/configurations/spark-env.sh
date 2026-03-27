@@ -1,2 +1,0 @@
-export SPARK_MASTER_HOST=vm-spark-master
-export SPARK_MASTER_PORT=7077
