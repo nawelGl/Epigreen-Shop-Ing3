@@ -16,7 +16,6 @@ export default function App() {
 
     return (
 
-
         <Router>
             <Routes>
                 {/* Passage de la fonction pour mettre à jour l'état après login */}
