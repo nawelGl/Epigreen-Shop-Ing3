@@ -113,6 +113,19 @@ export default function Header({ userName, onSearch }) {
         return () => document.removeEventListener('mousedown', onClickOutside);
     }, []);
 
+    const getStatusMessage = (status) => {
+        switch (status) {
+            case 'DELIVERED':
+                return "Votre colis a été livré avec succès ! ✅";
+            case 'IN_TRANSIT':
+                return "Votre colis est en cours d'acheminement. 🚚";
+            case 'PENDING':
+                return "Votre commande est en préparation. 📦";
+            default:
+                return "Le statut de votre commande a été mis à jour.";
+        }
+    };
+
     return (
         <div className="topbar">
             <Link to="/" className="brand">🌿 Epigreen</Link>
@@ -173,9 +186,12 @@ export default function Header({ userName, onSearch }) {
                                     <div key={index} style={{ padding: '15px', borderBottom: '1px solid #eee', fontSize: '0.9rem', display: 'flex', gap: '10px', alignItems: 'start' }}>
                                         <span style={{ fontSize: '1.2rem' }}>📦</span>
                                         <div>
-                                            <strong style={{ display: 'block', marginBottom: '3px' }}>Mise à jour de commande</strong>
-                                            {/* Adapte 'notif.message' en fonction de la structure exacte du JSON envoyé par ton Kafka */}
-                                            <span style={{ color: '#555' }}>{notif.message || `Le statut de votre commande ${notif.orderId || ''} a changé.`}</span>
+                                            <strong style={{ display: 'block', marginBottom: '3px' }}>
+                                                Commande {notif.trackingNumber || 'inconnue'}
+                                            </strong>
+                                            <span style={{ color: '#555' }}>
+                                                {getStatusMessage(notif.status)}
+                                            </span>
                                         </div>
                                     </div>
                                 ))

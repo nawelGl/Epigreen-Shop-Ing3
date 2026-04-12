@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  kong:
+    image: kong:latest
+    container_name: kong-gateway
+    environment:
+      - KONG_DATABASE=off
+      - KONG_DECLARATIVE_CONFIG=/kong/declarative/kong.yml
+      - KONG_PROXY_LISTEN=0.0.0.0:8000
+    ports:
+      - "8000:8000" 
+    volumes:
+      - ./kong.yml:/kong/declarative/kong.yml

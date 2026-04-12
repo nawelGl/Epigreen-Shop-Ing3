@@ -17,6 +17,10 @@ export const CONFIG = {
         EVENTTRACKER: "http://localhost:4000/api/track/events",
         ORDER: "http://localhost:8084/api/orders",
         TRACKER: "http://localhost:3000/api/track",
-        DELIVERY: "http://localhost:8087/api/delivery"
+        DELIVERY: "http://localhost:8087/api/delivery",
+        //KONG - gestioon des notifications avec LB :
+        //port 8088 : MS notification acces direct sans passer par Kong
+        //port 8000 : Kong redirigera les requêtes vers le MS notification
+        NOTIFICATION_WS: "ws://localhost:8088/notifications"
     }
 };

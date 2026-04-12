@@ -1,0 +1,21 @@
+_format_version: "3.0"
+
+upstreams:
+  - name: notification-cluster
+    algorithm: consistent-hashing
+    hash_on: query_arg
+    hash_on_query_arg: userId
+    targets:
+      - target: host.docker.internal:8088
+        weight: 100
+
+services:
+  - name: ms-notification-service
+    url: http://notification-cluster
+    routes:
+      - name: websocket-route
+        paths:
+          - /notifications
+        protocols:
+          - http
+          - https

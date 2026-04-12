@@ -112,7 +112,7 @@ def main(delivery_id):
     print("Simulation terminée, passage en DELIVERED...")
 
     requests.patch(
-        f"http://172.31.252.74:8087/api/delivery/{delivery_id}/status",
+        f"http://localhost:8087/api/delivery/{delivery_id}/status",
         params={"status": "DELIVERED"}
     )
 

@@ -2,12 +2,21 @@ package ms_notification.dto;
 
 public class NotificationMessage {
 
+    private String customerId;
     private String customerEmail;
     private String customerName;
     private String status;
     private String trackingNumber;
 
     public NotificationMessage() {
+    }
+
+    public String getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
     }
 
     public String getCustomerEmail() {

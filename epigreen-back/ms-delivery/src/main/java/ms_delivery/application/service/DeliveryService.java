@@ -229,17 +229,23 @@ public class DeliveryService {
 
     private void sendNotification(Delivery delivery) {
         try {
-            // MAIL FORCÉ POUR LES TESTS
             String targetEmail = "ghazal.nawel@gmail.com";
+            Long customerId = delivery.getCustomerId() != null ? delivery.getCustomerId() : 0L;
 
+            // on ajoute "customerId" dans le JSON
             String jsonMessage = String.format(
-                    "{\"customerEmail\":\"%s\", \"customerName\":\"Client #%d\", \"status\":\"DELIVERED\", \"trackingNumber\":\"%s\"}",
+                    "{\"customerId\":\"%d\", \"customerEmail\":\"%s\", \"customerName\":\"Client #%d\", \"status\":\"DELIVERED\", \"trackingNumber\":\"%s\"}",
+                    customerId,
                     targetEmail,
-                    delivery.getCustomerId() != null ? delivery.getCustomerId() : 0,
+                    customerId,
                     delivery.getTrackingNumber() != null ? delivery.getTrackingNumber() : "INCONNU");
 
-            kafkaTemplate.send("order-notifications", jsonMessage).get();
-            log.info("Message JSON produit dans Kafka : " + jsonMessage);
+            // Topic "delivery-events" + CLÉ KAFKA
+            // (String.valueOf(customerId))
+            // La clé garantit que tous les messages de ce client iront sur la même partition
+            kafkaTemplate.send("delivery-events", String.valueOf(customerId), jsonMessage).get();
+
+            log.info("Message JSON produit dans Kafka avec la clé [" + customerId + "] : " + jsonMessage);
         } catch (Exception e) {
             System.err.println("Erreur lors de l'envoi Kafka : " + e.getMessage());
         }
