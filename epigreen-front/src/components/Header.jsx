@@ -20,49 +20,57 @@ export default function Header({ userName, onSearch }) {
     const notifRef = useRef(null);
 
     useEffect(() => {
-        if (!userId) return; // On ne connecte pas la WebSocket si l'utilisateur n'est pas loggé
+        if (!userId) return;
 
         let ws;
         let reconnectTimeout;
 
-        const connectWebSocket = () => {
-            // On pointe vers Kong (Port 8000) et on passe l'ID dans l'URL pour le hachage
-            ws = new WebSocket(`${CONFIG.API.NOTIFICATION_WS}?userId=${userId}`);
+        // On encapsule dans une fonction async pour gérer l'API puis le WebSocket
+        const initNotifications = async () => {
+            // --- 1. LE RATTRAPAGE (Base de données) ---
+            try {
+                const res = await axios.get(`http://localhost:8089/api/notifications/unread/${userId}`);
+                setNotifications(res.data);
+                setUnreadCount(res.data.length); // Met à jour la cloche
+            } catch (error) {
+                console.error("Erreur de récupération de l'historique :", error);
+            }
 
-            ws.onopen = () => {
-                console.log("✅ Connecté au serveur de notifications temps réel (Kong) !");
+            // --- 2. LE FLUX LIVE (WebSocket) ---
+            const connectWebSocket = () => {
+                ws = new WebSocket(`${CONFIG.API.NOTIFICATION_WS}?userId=${userId}`);
+
+                ws.onopen = () => console.log("✅ Connecté au serveur de notifications temps réel (Kong) !");
+
+                ws.onmessage = (event) => {
+                    const newNotification = JSON.parse(event.data);
+                    console.log("🔔 Nouvelle notification reçue :", newNotification);
+
+                    // Ajout au début de la liste et incrémentation de la cloche
+                    setNotifications(prev => [newNotification, ...prev]);
+                    setUnreadCount(prev => prev + 1);
+                };
+
+                ws.onclose = () => {
+                    console.warn("WebSocket déconnectée. Reconnexion dans 3s...");
+                    reconnectTimeout = setTimeout(connectWebSocket, 3000);
+                };
+
+                ws.onerror = (err) => {
+                    console.error("Erreur WebSocket :", err);
+                    ws.close();
+                };
             };
 
-            ws.onmessage = (event) => {
-                const newNotification = JSON.parse(event.data);
-                console.log("🔔 Nouvelle notification reçue :", newNotification);
-
-                // On ajoute la nouvelle notif en haut de la liste et on incrémente la cloche
-                setNotifications(prev => [newNotification, ...prev]);
-                setUnreadCount(prev => prev + 1);
-            };
-
-            ws.onclose = () => {
-                console.warn("⚠️ WebSocket déconnectée (Crash ou Perte réseau).");
-                // retry + timeout
-                console.log("🔄 Tentative de reconnexion dans 3 secondes...");
-                reconnectTimeout = setTimeout(connectWebSocket, 3000);
-            };
-
-            ws.onerror = (err) => {
-                console.error("❌ Erreur WebSocket :", err);
-                ws.close(); // Force la fermeture pour déclencher le onclose et donc la reconnexion
-            };
+            connectWebSocket();
         };
 
-        // Lancement initial
-        connectWebSocket();
+        initNotifications();
 
-        // Nettoyage quand l'utilisateur quitte le site
         return () => {
             clearTimeout(reconnectTimeout);
             if (ws) {
-                ws.onclose = null; // Empêche une boucle de reconnexion infinie au démontage
+                ws.onclose = null;
                 ws.close();
             }
         };
@@ -96,6 +104,18 @@ export default function Header({ userName, onSearch }) {
                 }
             })
             .catch(err => setCartItemCount(0));
+    };
+
+    const handleClearNotifications = async () => {
+        try {
+            await axios.post(`http://localhost:8089/api/notifications/mark-as-read/${userId}`);
+            // On peut vider la liste ou juste fermer le menu
+            setNotifications([]);
+            setIsNotifMenuOpen(false);
+            setUnreadCount(0);
+        } catch (error) {
+            console.error("Erreur lors du nettoyage en base:", error);
+        }
     };
 
     useEffect(() => {
@@ -151,7 +171,7 @@ export default function Header({ userName, onSearch }) {
                         style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', position: 'relative' }}
                         onClick={() => {
                             setIsNotifMenuOpen(!isNotifMenuOpen);
-                            if (!isNotifMenuOpen) setUnreadCount(0); // On remet le compteur à zéro quand on lit
+                            //if (!isNotifMenuOpen) setUnreadCount(0); // On remet le compteur à zéro quand on lit
                         }}
                     >
                         🔔
@@ -170,13 +190,20 @@ export default function Header({ userName, onSearch }) {
                     {isNotifMenuOpen && (
                         <div style={{
                             position: 'absolute', right: 0, top: 'calc(100% + 15px)',
-                            width: '320px', background: 'white', border: '1px solid rgba(0,0,0,0.12)',
+                            width: '350px', background: 'white', border: '1px solid rgba(0,0,0,0.12)',
                             borderRadius: '10px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                             maxHeight: '400px', overflowY: 'auto', zIndex: 9999
                         }}>
-                            <div style={{ padding: '15px', fontWeight: 'bold', borderBottom: '1px solid #eee', backgroundColor: '#f8f9fa', borderRadius: '10px 10px 0 0' }}>
-                                Vos Notifications
+                            <div style={{ padding: '15px', fontWeight: 'bold', borderBottom: '1px solid #eee', backgroundColor: '#f8f9fa', borderRadius: '10px 10px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>Vos Notifications</span>
+                                {/* Le fameux bouton pour valider la lecture en base */}
+                                {notifications.length > 0 && (
+                                    <button onClick={handleClearNotifications} style={{ background: 'none', border: 'none', color: '#007bff', fontSize: '0.8rem', cursor: 'pointer' }}>
+                                        Tout marquer comme lu
+                                    </button>
+                                )}
                             </div>
+
                             {notifications.length === 0 ? (
                                 <div style={{ padding: '20px', color: '#666', textAlign: 'center' }}>
                                     Aucune nouvelle notification.
@@ -186,12 +213,16 @@ export default function Header({ userName, onSearch }) {
                                     <div key={index} style={{ padding: '15px', borderBottom: '1px solid #eee', fontSize: '0.9rem', display: 'flex', gap: '10px', alignItems: 'start' }}>
                                         <span style={{ fontSize: '1.2rem' }}>📦</span>
                                         <div>
-                                            <strong style={{ display: 'block', marginBottom: '3px' }}>
-                                                Commande {notif.trackingNumber || 'inconnue'}
+                                            {/* On affiche le champ 'message' généré par ton backend */}
+                                            <strong style={{ display: 'block', color: '#333' }}>
+                                                {notif.message}
                                             </strong>
-                                            <span style={{ color: '#555' }}>
-                                                {getStatusMessage(notif.status)}
-                                            </span>
+                                            {/* On affiche l'heure si tu l'as enregistrée */}
+                                            {notif.createdAt && (
+                                                <span style={{ color: '#999', fontSize: '0.8rem' }}>
+                                                    {new Date(notif.createdAt).toLocaleTimeString()}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 ))

@@ -8,6 +8,4 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=builder /build/target/*.jar app.jar
 
-COPY tokens ./tokens
-
 ENTRYPOINT ["java", "-jar", "app.jar"]

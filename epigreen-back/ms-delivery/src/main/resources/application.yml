@@ -6,10 +6,10 @@ spring:
     name: ms-delivery
 
   kafka:
-    bootstrap-servers: 172.31.249.79:9092
+    bootstrap-servers: 172.31.249.51:9092
   
   datasource:
-    url: jdbc:postgresql://172.31.252.74:5432/delivery-db
+    url: jdbc:postgresql://172.31.249.73:5432/delivery-db
     username: postgres
     password: SIRIUS
     driver-class-name: org.postgresql.Driver

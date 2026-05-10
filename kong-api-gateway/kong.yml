@@ -1,21 +1,26 @@
 _format_version: "3.0"
 
+# 1. On définit le groupe de serveurs (L'Upstream)
 upstreams:
   - name: notification-cluster
-    algorithm: consistent-hashing
-    hash_on: query_arg
-    hash_on_query_arg: userId
     targets:
-      - target: host.docker.internal:8088
+      # host.docker.internal permet à Kong (dans Docker) d'atteindre ton Mac
+      - target: host.docker.internal:8089
+        weight: 100
+      - target: host.docker.internal:8090
+        weight: 100
+      - target: host.docker.internal:8091
         weight: 100
 
 services:
-  - name: ms-notification-service
-    url: http://notification-cluster
+  # 2. On pointe le service vers l'Upstream, pas vers un port fixe
+  - name: ms-notification
+    host: notification-cluster
+    port: 80 # Le port ici n'a plus d'importance car l'upstream gère la cible
+    protocol: http
     routes:
       - name: websocket-route
         paths:
           - /notifications
-        protocols:
-          - http
-          - https
+        # Assure-toi que les WebSockets ne perdent pas la connexion
+        strip_path: false

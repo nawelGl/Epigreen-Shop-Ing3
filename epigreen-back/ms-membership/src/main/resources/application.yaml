@@ -7,7 +7,7 @@ spring:
     name: service-membership
   
   datasource:
-    url: jdbc:postgresql://172.31.252.28:5432/membership-db
+    url: jdbc:postgresql://172.31.249.114:5432/membership-db
     username: postgres
     password: SIRIUS
     driver-class-name: org.postgresql.Driver

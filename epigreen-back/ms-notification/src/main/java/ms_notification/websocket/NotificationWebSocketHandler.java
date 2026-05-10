@@ -1,21 +1,22 @@
 package ms_notification.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ms_notification.dto.NotificationMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.springframework.web.util.UriComponentsBuilder;
-
+import ms_notification.dto.Notification;
 import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.web.socket.WebSocketSession;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 public class NotificationWebSocketHandler extends TextWebSocketHandler {
 
@@ -64,34 +65,27 @@ public class NotificationWebSocketHandler extends TextWebSocketHandler {
     }
 
     // --- LA MÉTHODE APPELÉE PAR KAFKA ---
-    public void sendNotification(String userId, NotificationMessage message) {
+    public void sendNotification(String userId, Notification notification) {
+        // 1. On cherche la session correspondant à l'utilisateur dans notre Map locale
         WebSocketSession session = activeSessions.get(userId);
 
-        try {
-            String jsonMessage = objectMapper.writeValueAsString(message);
+        // 2. Si la session existe et qu'elle est toujours ouverte sur CETTE instance
+        if (session != null && session.isOpen()) {
+            try {
+                // 3. On transforme l'objet Notification complet en chaîne JSON
+                // C'est ce JSON qui contiendra les champs 'id', 'message', 'createdAt', etc.
+                String jsonPayload = objectMapper.writeValueAsString(notification);
 
-            if (session != null && session.isOpen()) {
-                // CAS 1 : CHEMIN NOMINAL (RAM)
-                session.sendMessage(new TextMessage(jsonMessage));
-                System.out.println("[ENVOI] Notification envoyée directement via RAM à l'User " + userId);
+                // 4. On envoie le message à travers le tuyau WebSocket
+                session.sendMessage(new TextMessage(jsonPayload));
 
-            } else {
-                // CAS 2 : LE FALLBACK (Crash) - On interroge Redis
-                String targetInstance = redisTemplate.opsForValue().get("ws_user_" + userId);
-
-                if (targetInstance != null) {
-                    System.out.println("[FALLBACK] L'User " + userId + " n'est pas ici. Redis dit qu'il est sur : "
-                            + targetInstance);
-                    // TODO: Faire un appel HTTP (RestTemplate/WebClient) vers 'targetInstance'
-                    // pour lui transférer le message.
-                    // (Pour la démo immédiate, on log juste l'action)
-                } else {
-                    System.out.println("[IGNORÉ] L'User " + userId
-                            + " n'est connecté nulle part. Notification sauvegardée uniquement en BDD.");
-                }
+                log.info("[WEBSOCKET -> OUT] Message envoyé avec succès à l'utilisateur {}", userId);
+            } catch (Exception e) {
+                log.error("Erreur lors de la sérialisation ou de l'envoi WS : {}", e.getMessage());
             }
-        } catch (Exception e) {
-            System.err.println("Erreur d'envoi WebSocket : " + e.getMessage());
+        } else {
+            log.debug("[IGNORED] L'utilisateur {} n'est pas connecté sur cette instance (Session introuvable).",
+                    userId);
         }
     }
 

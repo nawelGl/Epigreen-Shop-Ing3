@@ -4,11 +4,11 @@ import requests
 import sys
 import paho.mqtt.client as mqtt
 
-BROKER = "172.31.252.234"
+BROKER = "localhost"
 PORT = 1883
 TOPIC = "delivery/location"
 
-DELIVERY_API = "http://172.31.252.74:8087/api/delivery"
+DELIVERY_API = "http://localhost:8087/api/delivery"
 
 STEP_EVERY_N_POINTS = 5
 SLEEP_SECONDS = 1

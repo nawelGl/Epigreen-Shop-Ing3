@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # 1. Le Cache (Redis)
+  redis:
+    image: redis:alpine
+    container_name: epigreen-redis
+    ports:
+      - "6379:6379"
+
+  # 2. Le Broker de Télémétrie (Mosquitto MQTT)
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: epigreen-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./ms-telemetry/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  # 3. L'API Gateway (Kong)
+  kong-gateway:
+    image: kong:latest
+    container_name: kong-gateway
+    environment:
+      - KONG_DATABASE=off
+      - KONG_DECLARATIVE_CONFIG=/kong/declarative/kong.yml
+      - KONG_PROXY_ACCESS_LOG=/dev/stdout
+      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
+      - KONG_PROXY_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl
+    volumes:
+      - ../kong-api-gateway/kong.yml:/kong/declarative/kong.yml 
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+
+# 4. La Base de données
+  postgres:
+    image: postgres:15-alpine
+    container_name: epigreen-postgres
+    environment:
+      POSTGRES_USER: epigreen_admin
+      POSTGRES_PASSWORD: epigreen_password
+      POSTGRES_DB: epigreen_notifications
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+# On déclare le volume pour sauvegarder la donnée
+volumes:
+  pgdata:

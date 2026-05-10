@@ -32,21 +32,21 @@ public class MqttToKafkaBridge {
         options.setCleanSession(true);
         options.setConnectionTimeout(10);
 
-        log.info("📡 Tentative de connexion MQTT sur : {}", brokerUrl);
+        log.info("Tentative de connexion MQTT sur : {}", brokerUrl);
         client.connect(options);
-        log.info("✅ Connecté à MQTT ! En écoute sur delivery/location...");
+        log.info("Connecté à MQTT ! En écoute sur delivery/location...");
 
 // On écoute MQTT
         client.subscribe("delivery/location", (topic, msg) -> {
             String payload = new String(msg.getPayload());
-            log.info("📥 [MESSAGE REÇU MQTT] : {}", payload);
+            log.info(" [MESSAGE REÇU MQTT] : {}", payload);
             
             // BONNE PRATIQUE : Envoi asynchrone avec gestion des erreurs
             this.kafkaTemplate.send("gps-data-raw", payload).whenComplete((result, ex) -> {
                 if (ex == null) {
-                    log.info("✅ [CONFIRMÉ PAR KAFKA] : Donnée enregistrée avec succès");
+                    log.info("[CONFIRMÉ PAR KAFKA] : Donnée enregistrée avec succès");
                 } else {
-                    log.error("❌ [ERREUR FATALE KAFKA] : {}", ex.getMessage());
+                    log.error("[ERREUR FATALE KAFKA] : {}", ex.getMessage());
                 }
             });
         });

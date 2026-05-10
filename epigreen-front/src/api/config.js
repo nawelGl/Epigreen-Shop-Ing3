@@ -21,6 +21,6 @@ export const CONFIG = {
         //KONG - gestioon des notifications avec LB :
         //port 8088 : MS notification acces direct sans passer par Kong
         //port 8000 : Kong redirigera les requêtes vers le MS notification
-        NOTIFICATION_WS: "ws://localhost:8088/notifications"
+        NOTIFICATION_WS: "ws://localhost:8000/notifications"
     }
 };
